@@ -1,0 +1,99 @@
+<launch>
+
+    <param name='use_sim_time' value='true'/>
+
+    <include file="$(find p2os_urdf)/launch/upload_pioneer3at.xml"/>
+
+
+    <node pkg="topic_tools" type="transform" name="imu2angularspeed"
+        args="/android/imu yaw std_msgs/Float32 'tf.transformations.euler_from_quaternion([m.orientation.x, m.orientation.y, m.orientation.z, m.orientation.w])[2]' --import tf"/>
+
+    <node pkg="pioneer_outdoor" type="imu_republisher.py" name="imu_republisher">
+        <remap from="in_imu" to="/android/imu"/>
+        <remap from="out_imu" to="/imu"/>
+    </node>
+<!--
+  	<node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher">
+
+    	<param name="publish_frequency" type="double" value="30.0"/>
+
+    	<param name="tf_prefix" type="string" value=""/>
+  	</node> -->
+
+
+    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0.3 0 0.5 0 0 0 base_link imu 100" />
+
+
+
+	<node pkg="p2os_urdf" type="p2os_publisher_3at" name="publisher"/>
+
+
+    <node pkg="robot_localization" type="navsat_transform_node" name="sat2odom" clear_params="true">
+         <rosparam param="wait_for_datum">true</rosparam>
+         <rosparam param="datum">[46.025830, 8.919781, 0.0, map, base_link]</rosparam>
+        <!-- <rosparam param="datum">[46.025887, 8.919809, 0.0, map, base_link]</rosparam> -->
+        <rosparam param="publish_filtered_gps">true</rosparam>
+        <remap from="/gps/fix" to="/fix"/>
+        <!-- <remap from="/imu/data" to="/imu"/> -->
+        <!-- <param name="magnetic_declination_radians" value="0"/>
+        <param name="yaw_offset" value="0"/> -->
+    </node>
+
+    <node pkg="robot_localization" type="navsat_transform_node" name="sat2odom2" clear_params="true">
+        <remap from="gps/fix" to="android/fix"/>
+        <rosparam param="wait_for_datum">true</rosparam>
+        <rosparam param="datum">[46.025830, 8.919781, 0.0, map, base_link]</rosparam>
+        <remap from="odometry/gps" to="odometry/gps_android"/>
+    </node>
+
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekfsat" clear_params="true">
+
+         <param name="frequency" value="30"/>
+         <param name="sensor_timeout" value="0.1"/>
+         <param name="two_d_mode" value="true"/>
+
+         <param name="odom_frame" value="odom"/>
+         <param name="base_link_frame" value="base_link"/>
+         <param name="world_frame" value="map"/>
+
+         <param name="odom0" value="/pose"/>
+         <rosparam param="odom0_config">
+             [false, false, false,
+              false, false, false,
+              true, true, false,
+              false, false, true,
+              false, false, false]
+          </rosparam>
+          <param name="odom0_differential" value="true"/>
+         <!-- <rosparam param="odom0_config">
+             [true, true, false,
+              false, false, false,
+              false, false, false,
+              false, false, false,
+              false, false, false]
+         </rosparam> -->
+
+
+         <param name="odom1" value="/odometry/gps"/>
+         <rosparam param="odom1_config">
+             [true, true, false,
+              false, false, false,
+              false, false, false,
+              false, false, false,
+              false, false, false]
+          </rosparam>
+        <param name="odom1_differential" value="false"/>
+
+        <param name="imu0" value="/imu"/>
+        <rosparam param="imu0_config">
+            [false, false, false,
+            false, false, false,
+            false, false, false,
+            false, false, true,
+            false, false, false]
+        </rosparam>
+         <param name="imu0_differential" value="true"/>
+
+    </node>
+
+</launch>
