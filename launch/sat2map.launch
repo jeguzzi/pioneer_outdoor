@@ -8,7 +8,6 @@
 
     <!-- Define the imu frame -->
     <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0.15 0 0.47 0 0 0 base_link imu 100"/>
-     <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0.15 0 0.35 0 0 0 base_link laser 100"/>
 
     <!-- PREPARE SENSORS -->
     <!-- Check if yaw from magnetometer is valid -->
