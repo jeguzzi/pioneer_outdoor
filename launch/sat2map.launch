@@ -61,6 +61,8 @@
 
     <node pkg="robot_localization" type="ekf_localization_node" name="ekfsat" clear_params="true">
 
+        <remap from="set_pose" to="initialpose"/>
+
         <param name="frequency" value="30"/>
         <param name="sensor_timeout" value="0.1"/>
         <param name="two_d_mode" value="true"/>
@@ -69,27 +71,72 @@
         <param name="base_link_frame" value="base_link"/>
         <param name="world_frame" value="map"/>
 
+        <!-- INITIAL ESTIMATE -->
+
+        <rosparam param="initial_estimate_covariance">
+            [1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 36, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0.0, 0.01, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0.1
+            ]
+        </rosparam>
+
+
         <!-- ODOMETRY -->
         <param name="odom0" value="/pose"/>
         <rosparam param="odom0_config">
-            [false, false, false, false, false, false, true, true, false, false, false, true, false, false, false]
+            [false, false, false,
+             false, false, false,
+             true, true, false,
+             false, false, true,
+             false, false, false]
         </rosparam>
         <param name="odom0_differential" value="true"/>
 
         <!-- GPS -->
         <param name="odom1" value="/odometry/gps"/>
         <rosparam param="odom1_config">
-            [true, true, false, false, false, false, false, false, false, false, false, false, false, false, false]
+            [true, true, false,
+             false, false, false,
+             false, false, false,
+             false, false, false,
+             false, false, false]
         </rosparam>
         <param name="odom1_differential" value="false"/>
+
+        <!-- 2. GPS -->
+        <!-- <param name="odom2" value="/odometry/gps_android"/>
+        <rosparam param="odom2_config">
+            [true, true, false,
+             false, false, false,
+             false, false, false,
+             false, false, false,
+             false, false, false]
+        </rosparam>
+        <param name="odom2_differential" value="false"/> -->
+
 
         <!-- IMU -->
         <param name="imu0" value="/imu"/>
         <rosparam param="imu0_config">
-            [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false]
+            [false, false, false,
+             false, false, true,
+             false, false, false,
+             false, false, true,
+             false, false, false]
         </rosparam>
-        <param name="imu0_differential" value="true"/>
+        <param name="imu0_differential" value="false"/>
 
     </node>
+
+
 
 </launch>
