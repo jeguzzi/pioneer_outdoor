@@ -7,11 +7,12 @@
     <arg name="filter_odom" default="1"/>
 
     <!-- Define the imu frame -->
-    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0.3 0 0.5 0 0 0 base_link imu 100"/>
+    <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0.15 0 0.47 0 0 0 base_link imu 100"/>
+     <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0.15 0 0.35 0 0 0 base_link laser 100"/>
 
     <!-- PREPARE SENSORS -->
     <!-- Check if yaw from magnetometer is valid -->
-    <node pkg="topic_tools" type="transform" name="imu2angularspeed" args="/android/imu yaw std_msgs/Float32 'tf.transformations.euler_from_quaternion([m.orientation.x, m.orientation.y, m.orientation.z, m.orientation.w])[2]' --import tf"/>
+    <node pkg="topic_tools" type="transform" name="imu2angularspeed" args="/android/imu /imu/yaw std_msgs/Float32 'tf.transformations.euler_from_quaternion([m.orientation.x, m.orientation.y, m.orientation.z, m.orientation.w])[2]' --import tf"/>
 
     <!-- Add covaraince to IMU, republished to /imu -->
     <node pkg="pioneer_outdoor" type="imu_republisher.py" name="imu_republisher">
@@ -163,7 +164,6 @@
         <param name="imu0_differential" value="true"/>
 
         <remap from="odometry/filtered" to="odometry/odom"/>
-
     </node>
 
 
