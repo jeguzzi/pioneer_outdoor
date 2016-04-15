@@ -2,7 +2,7 @@
 
 <include file="$(find pioneer_outdoor)/launch/sat2map.launch">
     <arg name="filter_odom" value="1"/>
-    <arg name="android_gps" value="1"/>
+    <arg name="android_gps" value="0"/>
 </include>
 
 </launch>
