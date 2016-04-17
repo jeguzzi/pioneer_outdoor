@@ -9,4 +9,4 @@
       <arg name="camera" value="1"/>
       <arg name="model" value="pioneer2"/>
   </include>
-<launch>
+</launch>
