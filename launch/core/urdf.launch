@@ -1,0 +1,17 @@
+<launch>
+    <!-- Adapted from https://github.com/allenh1/p2os/blob/master/p2os_urdf/launch/pioneer3at_urdf.launch -->
+    <arg name="model" default="pioneer"/>
+
+    <include file="$(find p2os_urdf)/launch/upload_pioneer3at.xml"/>
+
+    <param name="robot_description" command="$(find xacro)/xacro.py $(find pioneer_outdoor)/models/$(arg model).xacro" />
+
+    <!-- Update tf tree according to joints positions-->
+    <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="30.0"/>
+        <param name="tf_prefix" type="string" value=""/>
+    </node>
+    <!-- Joint state publisher (publish fixed wheels)-->
+    <!-- TODO: Should we run it? -->
+    <node pkg="p2os_urdf" type="p2os_publisher_3at" name="publisher"/>
+</launch>

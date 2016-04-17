@@ -1,0 +1,52 @@
+<launch>
+    <!-- Defining the arguments -->
+    <arg name="hokoyu" default="0"/>
+    <arg name="sick" default="0"/>
+    <arg name="ahrs" default="1"/>
+    <arg name="robot" default="1"/>
+    <arg name="joystick" default="1"/>
+    <arg name="gps" default="1"/>
+    <arg name="camera" default="1"/>
+    <arg name="model" default="pioneer"/>
+    <arg name="ticks_mm" default="135.7"/>
+    <arg name="rev_count" default="31390"/>
+    <arg name="drift_factor" default="45"/>
+    <arg name="debug_compass" default="0"/>
+
+    <!-- Start the robot -->
+    <include if="$(arg robot)" file="$(find pioneer_outdoor)/launch/core/p3at.launch">
+      <arg name="ticks_mm" value="$(arg ticks_mm)"/>
+      <arg name="rev_count" value="$(arg rev_count)"/>
+      <arg name="drift_factor" value="$(arg drift_factor)"/>
+      <arg name="robot_device" value="$(optenv robot /dev/myrobot)"/>
+    </include>
+
+    <!-- Start all sensors -->
+    <!-- GPS -->
+    <include if="$(arg gps)" file="$(find pioneer_outdoor)/launch/core/gps.launch"/>
+
+    <!-- AHRS -->
+    <include if="$(arg ahrs)" file="$(find pioneer_outdoor)/launch/core/ahrs.launch">
+      <arg name="debug_compass" value="$(arg debug_compass)"/>
+    </include>
+
+    <!-- CAMERA -->
+    <include if="$(arg camera)" file="$(find pioneer_outdoor)/launch/core/camera.launch"/>
+
+    <!-- JOYSTICK -->
+    <!-- Start joy and teleoperation node for joystick control -->
+    <include if="$(arg joystick)" file="$(find pioneer_outdoor)/launch/core/joystick.launch"/>
+
+    <!-- Hokuyo Laser -->
+    <include if="$(arg hokuyo)" file="$(find pioneer_outdoor)/launch/core/hokuyo.launch"/>
+
+    <!-- Sick Laser -->
+    <include if="$(arg sick)" file="$(find pioneer_outdoor)/launch/core/sick.launch"/>
+
+    <!-- Robot model -->
+
+    <include file="$(find pioneer_outdoor)/launch/core/urdf.launch">
+      <arg name="model" value="$(arg model)"/>
+    </include>
+
+</launch>

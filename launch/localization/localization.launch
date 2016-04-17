@@ -1,0 +1,148 @@
+<launch>
+    <arg name="datum"/>
+    <arg name="gps" default="0"/>
+    <arg name="gps_topic" default="gps/fix"/>
+    <arg name="gps2" default="0"/>
+    <arg name="gps2_topic"/>
+
+    <arg name="filter_odom" default="1"/>
+    <arg name="map_odom_frame" default="odom"/>
+    <arg name="filter_map" default="0"/>
+    <arg name="compass" default="false"/>
+
+    <arg name="amcl" default="0"/>
+    <arg name="amcl_map"/>
+
+    <!-- Launch amcl and map_server -->
+
+    <include if="$(arg amcl)" file="$(find pioneer_outdoor)/launch/localization/amcl.launch">
+      <arg name="global_frame" value="$(arg amcl_global_frame)"/>
+      <arg name="transformation" default="$(arg amcl_transformation)"/>
+      <arg name="global" value="$(arg gps)"/>
+      <arg name="map" value="$(arg amcl_map)"/>
+    </include>
+
+    <!-- Tranform GPS to odometry in the map frame -->
+    <!-- Currently by setting the "datum" parameter -->
+
+    <node if="$(arg gps)" pkg="robot_localization" type="navsat_transform_node" name="gps_odom" clear_params="true">
+        <!-- without datum -->
+        <!--
+        <remap from="imu/data" to="imu"/>
+        <param name="magnetic_declination_radians" value="0"/>
+        <param name="magnetic_declination_radians" value="0"/>
+        <param name="yaw_offset" value="0"/>
+        -->
+        <!-- with datum -->
+        <rosparam param="wait_for_datum">true</rosparam>
+        <rosparam param="datum" subst_value="True">$(arg datum)</rosparam>
+        <!--  -->
+        <remap from="gps/fix" to="$(arg gps_topic)"/>
+        <rosparam param="publish_filtered_gps">true</rosparam>
+        <param name="broadcast_utm_transform" value="true"/>
+    </node>
+
+    <!-- Tranform the Android GPS too (currently not fused) -->
+
+    <node if="$(arg gps2)" pkg="robot_localization" type="navsat_transform_node" name="gps2_odom" clear_params="true">
+        <rosparam param="wait_for_datum">true</rosparam>
+        <rosparam param="datum" subst_value="True">$(arg datum)</rosparam>
+        <remap from="odometry/gps" to="odometry/gps2"/>
+        <remap from="gps/fix" to="$(arg gps2_topic)"/>
+    </node>
+
+    <!-- RUN FUSION:
+    - odometry linear (x,y) and angular speed (yaw)
+    - ahrs angular speed
+    - ahrs yaw (optional)
+    - gps position (x,y)
+    -->
+
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekfsat" clear_params="true" if="$(arg filter_map)">
+
+        <remap from="set_pose" to="initialpose"/>
+
+        <param name="frequency" value="30"/>
+        <param name="sensor_timeout" value="0.1"/>
+        <param name="two_d_mode" value="true"/>
+
+        <param name="odom_frame" value="$(arg map_odom_frame)"/>
+        <param name="base_link_frame" value="base_link"/>
+        <param name="world_frame" value="map"/>
+
+        <!-- INITIAL ESTIMATE -->
+
+        <rosparam param="initial_estimate_covariance">
+            [1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0.1 ]
+        </rosparam>
+
+        <!-- ODOMETRY -->
+        <param name="odom0" value="p3at/pose"/>
+        <rosparam param="odom0_config">
+            [false, false, false, false, false, false, true, true, false, false, false, true, false, false, false]
+        </rosparam>
+        <param name="odom0_differential" value="true"/>
+
+        <!-- AMCL -->
+        <param name="pose0" value="amcl_pose" if="$(arg amcl)"/>
+        <rosparam param="pose0_config">
+           [true, true, false,
+             false, false, true,
+             false, false, false,
+             false, false, false,
+             false, false, false]
+        </rosparam>
+        <param name="pose0_differential" value="false"/>
+
+        <!-- IMU -->
+        <param name="imu0" value="imu/data"/>
+        <rosparam param="imu0_config" subst_value="true">
+            [false, false, false, false, false, $(arg compass), false, false, false, false, false, true, false, false, false]
+        </rosparam>
+        <param name="imu0_differential" value="false"/>
+
+        <!-- GPS -->
+        <param name="odom1" value="odometry/gps" if="$(arg gps)"/>
+        <rosparam param="odom1_config">
+            [true, true, false, false, false, false, false, false, false, false, false, false, false, false, false]
+        </rosparam>
+        <param name="odom1_differential" value="false"/>
+
+        <!-- 2. GPS -->
+        <param name="odom2" value="odometry/gps2" if="$(arg gps2)"/>
+        <rosparam param="odom2_config">
+            [true, true, false, false, false, false, false, false, false, false, false, false, false, false, false]
+        </rosparam>
+        <param name="odom2_differential" value="false"/>
+    </node>
+
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekfodom" clear_params="true" if="$(arg filter_odom)">
+
+        <param name="frequency" value="30"/>
+        <param name="sensor_timeout" value="0.1"/>
+        <param name="two_d_mode" value="true"/>
+
+        <param name="odom_frame" value="odom"/>
+        <param name="base_link_frame" value="base_link"/>
+        <param name="world_frame" value="odom"/>
+
+        <!-- ODOMETRY -->
+        <param name="odom0" value="p3at/pose"/>
+        <rosparam param="odom0_config">
+            [false, false, false, false, false, false, true, true, false, false, false, true, false, false, false]
+        </rosparam>
+        <param name="odom0_differential" value="true"/>
+
+        <!-- IMU -->
+        <param name="imu0" value="imu/data"/>
+        <rosparam param="imu0_config">
+            [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false]
+        </rosparam>
+        <param name="imu0_differential" value="true"/>
+
+        <remap from="odometry/filtered" to="odometry/odom"/>
+    </node>
+
+</launch>

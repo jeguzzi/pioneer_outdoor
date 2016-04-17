@@ -1,0 +1,25 @@
+<launch>
+    <arg name="ahrs_device" default="$(optenv ahrs /dev/myahrs)"/>
+    <arg name="debug_compass" default="0"/>
+    <arg name="angular_velocity_stddev" default="0.002428"/>
+    <arg name="orientation_stddev" default="0.002143"/>
+
+    <node pkg="myahrs_driver" type="myahrs_driver" name="ahrs">
+        <param name="port" value="$(arg ahrs_device)"/>
+        <param name="frame_id" value="imu"/>
+        <param name="publish_tf" value="false"/>
+        <param name="linear_acceleration_stddev" value="0.026831"/>
+        <param name="angular_velocity_stddev" value="$(arg angular_velocity_stddev)"/>
+        <param name="magnetic_field_stddev" value="0.00000327486"/>
+        <param name="orientation_stddev" value="$(arg orientation_stddev)"/>
+    </node>
+
+    <!-- Check if yaw from magnetometer is valid -->
+    <node
+        if="$(arg debug_compass)"
+        pkg="topic_tools"
+        type="transform"
+        name="imu2angularspeed"
+        args="imu/data imu/yaw std_msgs/Float32 'tf.transformations.euler_from_quaternion([m.orientation.x, m.orientation.y, m.orientation.z, m.orientation.w])[2]' --import tf"/>
+
+<launch>

@@ -1,0 +1,35 @@
+<launch>
+    <arg name="ticks_mm" default="135.7"/>
+    <arg name="rev_count" default="31390"/>
+    <arg name="drift_factor" default="45"/>
+    <arg name="max_speed" default="0.75"/>
+    <arg name="max_angular_speed" default="2"/>
+    <arg name="speed_dev" default="0.05"/>
+    <arg name="angular_speed_dev" default="0.1"/>
+    <arg name="robot_device" default="$(optenv robot /dev/myrobot)"/>
+    <!-- p2os_driver use public, while rosaria private node handles.
+         To uniforme, let's add a ns to p2os_driver -->
+    <group if="$(arg p2os)" ns="p3at">
+        <node pkg="p2os_driver" name="p3at" type="p2os_driver" respawn="true" respawn_delay="30">
+            <param name="port" value="$(arg robot_device)"/>
+            <param name="pulse" value="1.0"/>
+            <param name="ticksmm" value="$(arg ticks_mm)"/>
+            <param name="revcount" value="$(arg rev_count)"/>
+            <param name="driftfactor" value="$(arg drift_factor)"/>
+            <param name="max_xspeed" value="$(arg max_speed)"/>
+            <param name="max_yawspeed" value="$(arg max_angular_speed)"/>
+            <param name="publish_odom_transform" value="false"/>
+            <param param="std_dev_speed" value="$(arg speed_dev)"/>
+            <param param="std_dev_angular_speed" value="$(arg angular_speed_dev)"/>
+        </node>
+        <node name="rostopic" pkg="rostopic" type="rostopic" args="pub -1 /cmd_motor_state p2os_msgs/MotorState 1"/>
+    </group>
+    <group unless="$(arg p2os)">
+        <node pkg="rosaria" name="p3at" type="rosaria" respawn="true" respawn_delay="30">
+            <param name="port" value="$(arg robot_device)"/>
+            <param name="TicksMM" value="$(arg ticks_mm)"/>
+            <param name="RevCount" value="$(arg rev_count)"/>
+            <param name="DriftFactor" value="$(arg drift_factor)"/>
+        </node>
+    </group>
+    <launch>
