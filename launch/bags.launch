@@ -1,0 +1,19 @@
+<launch>
+
+<!-- To display the pioneer in rviz -->
+
+<param name='use_sim_time' value='true'/>
+
+<node pkg="rosbag" type="play" name="player" output="screen" required="true"
+    args="$(find pioneer_outdoor)/bags/2016-03-24-13-24-44.bag --clock -r 4" />
+
+
+<include file="$(find p2os_urdf)/launch/upload_pioneer3at.xml"/>
+<node pkg="p2os_urdf" type="p2os_publisher_3at" name="publisher"/>
+
+<include file="$(find pioneer_outdoor)/launch/sat2map.launch">
+    <arg name="filter_odom" value="0"/>
+    <arg name="android_gps" value="1"/>
+</include>
+
+</launch>
