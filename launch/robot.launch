@@ -4,6 +4,4 @@
     <arg name="filter_odom" value="1"/>
     <arg name="android_gps" value="1"/>
     <arg name="gps" value="1"/>
-</include>
-
 </launch>

@@ -1,0 +1,13 @@
+<launch>
+
+   <arg name="map" default="$(find pioneer_outdoor/maps/map.yaml)"/>
+
+   <include file="$(find pioneer_outdoor)/launch/localization/localization.launch">
+     <arg name="gps" value="0"/>
+     <arg name="amcl_map" value="$(arg map)"/>
+     <arg name="filter_map" default="1"/>
+     <arg name="amcl" default="1"/>
+     <arg name="compass" default="false"/>
+   </include>
+
+</launch>

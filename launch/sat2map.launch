@@ -2,7 +2,7 @@
 
     <arg name="datum" value="[46.025830, 8.919781, 0.0, map, base_link]"/>
 
-    <arg name="android_gps" default="1"/>
+    <arg name="android_gps" default="0"/>
     <arg name="gps" default="1"/>
     <arg name="filter_odom" default="1"/>
     <arg name="filter_map_odom" default="odom"/>
@@ -12,13 +12,14 @@
 
     <!-- PREPARE SENSORS -->
     <!-- Check if yaw from magnetometer is valid -->
-    <node pkg="topic_tools" type="transform" name="imu2angularspeed" args="/android/imu /imu/yaw std_msgs/Float32 'tf.transformations.euler_from_quaternion([m.orientation.x, m.orientation.y, m.orientation.z, m.orientation.w])[2]' --import tf"/>
+    <node pkg="topic_tools" type="transform" name="imu2angularspeed" args="/imu/data /imu/yaw std_msgs/Float32 'tf.transformations.euler_from_quaternion([m.orientation.x, m.orientation.y, m.orientation.z, m.orientation.w])[2]' --import tf"/>
 
+   
     <!-- Add covaraince to IMU, republished to /imu -->
-    <node pkg="pioneer_outdoor" type="imu_republisher.py" name="imu_republisher">
+    <!--<node pkg="pioneer_outdoor" type="imu_republisher.py" name="imu_republisher">
         <remap from="in_imu" to="/android/imu"/>
         <remap from="out_imu" to="/imu"/>
-    </node>
+    </node>-->
 
     <!-- Tranform GPS to odometry in the map frame -->
     <!-- Currently not working without setting the "datum" parameter -->
@@ -35,7 +36,7 @@
         <param name="yaw_offset" value="0"/>
         -->
         <rosparam param="publish_filtered_gps">true</rosparam>
-        <remap from="/gps/fix" to="/fix"/>
+        <!--<remap from="/gps/fix" to="/fix"/>-->
     </node>
 
     <!-- Tranform the Android GPS too (currently not fused) -->
@@ -119,7 +120,7 @@
 
 
         <!-- IMU -->
-        <param name="imu0" value="/imu"/>
+        <param name="imu0" value="/imu/data"/>
         <rosparam param="imu0_config">
             [false, false, false,
              false, false, true,
@@ -153,7 +154,7 @@
         <param name="odom0_differential" value="true"/>
 
         <!-- IMU -->
-        <param name="imu0" value="/imu"/>
+        <param name="imu0" value="/imu/data"/>
         <rosparam param="imu0_config">
             [false, false, false,
              false, false, false,

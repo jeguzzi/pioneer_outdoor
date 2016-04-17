@@ -1,0 +1,9 @@
+<launch>
+
+   <include file="$(find pioneer_outdoor)/launch/localization/localization.launch">
+     <arg name="gps" value="0"/>
+     <arg name="filter_map" default="0"/>
+     <arg name="amcl" default="0"/>
+   </include>
+
+</launch>

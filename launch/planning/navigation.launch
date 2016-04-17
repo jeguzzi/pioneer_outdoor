@@ -1,0 +1,89 @@
+<launch>
+
+    <arg name="use_amcl_map" default="1"/>
+    <arg name="map"/>
+    <arg name="map_frame" default="map"/>
+
+    <!-- Cost map -->
+
+    <group if="$(env sick)">
+      <arg name="obstacle_range" default="15.0"/>
+      <arg name="raytrace_range" default="20.0"/>
+    </group>
+    <group if="$(env hokuyo)">
+      <arg name="obstacle_range" default="4.0"/>
+      <arg name="raytrace_range" default="5.0"/>
+    </group>
+    <arg name="inflation_radius" default="0.5"/>
+    <arg name="global_frame" default="odom"/>
+    <arg name="global_static_map" default="false"/>
+
+    <!-- Local planning -->
+    <arg name="max_speed" default="0.7"/>
+    <arg name="max_angular_speed" default="0.8"/>
+    <arg name="range_tolerance" default="0.3"/>
+    <arg name="yaw_tolerance" default="0.3"/>
+
+    <node unless="$(arg use_amcl_map)" name="navigation_map_server" pkg="map_server" type="map_server" args="$(arg map)">
+        <param name="frame_id" value="$(arg map_frame)"/>
+    </node>
+
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+
+        <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+        <rosparam file="$(find p2os_launch)/launch/costmap_common_params_p3at.yaml" command="load" ns="global_costmap"/>
+        <!-- <rosparam file="$(find p2os_launch)/launch/global_costmap_params.yaml" command="load"/> -->
+
+        <rosparam ns="global_costmap" subst-value="true">
+            global_frame: $(arg global_frame)
+            robot_base_frame: base_link
+            update_frequency: 2.0
+            publish_frequency: 0.0
+            static_map: $(arg global_static_map)
+            resolution: 0.1
+            obstacle_range: $(arg obstacle_range)
+            raytrace_range: $(arg raytrace_range)
+            inflation_radius: $(arg inflation_radius)
+        </rosparam>
+        <rosparam unless="$(arg static_map)" ns="global_costmap">
+            rolling_window: true
+            width: 200.0
+            height: 200.0
+        </rosparam>
+
+        <rosparam file="$(find p2os_launch)/launch/global_planner_params.yaml" command="load"/>
+
+        <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
+        <rosparam file="$(find p2os_launch)/launch/costmap_common_params_p3at.yaml" command="load" ns="local_costmap"/>
+        <rosparam ns="local_costmap" subst-value="true">
+            obstacle_range: $(arg obstacle_range)
+            raytrace_range: $(arg raytrace_range)
+            inflation_radius: $(arg inflation_radius)
+        </rosparam>
+
+        <rosparam file="$(find p2os_launch)/launch/local_costmap_params.yaml" command="load"/>
+        <rosparam file="$(find p2os_launch)/launch/base_local_planner_params.yaml" command="load"/>
+        <rosparam ns="TrajectoryPlannerROS" subst-value="true">
+            max_vel_x: $(arg max_speed)
+            min_vel_x: 0.1
+            max_rotational_vel: $(arg max_angular_speed)
+            min_in_place_rotational_vel: 0.3
+            backup_vel: -0.2 sim_time: 3.0
+            sim_granularity: 0.1
+            path_distance_bias: 0.6
+            goal_distance_bias: 0.6
+            controller_frequency: 10
+            acc_lim_th: 1.4
+            acc_lim_x: 0.3
+            acc_lim_y: 0.3
+            yaw_goal_tolerance: $(arg yaw_tolerance)
+            xy_goal_tolerance: $(arg range_tolerance)
+            holonomic_robot: false
+        </rosparam>
+
+        <param name="conservative_reset_dist" type="double" value="3.0"/>
+        <param name="controller_frequency" type="double" value="10.0"/>
+        <remap from="cmd_vel" to="des_vel"/>
+
+    </node>
+</launch>
