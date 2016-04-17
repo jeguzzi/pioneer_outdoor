@@ -6,6 +6,6 @@
        xmlns:xacro="http://ros.org/wiki/xacro"
 name="pioneer3at">
 
-<include filename="$(find p2os_urdf)/urdf/pioneer.xacro"/>
+<xacro:include filename="$(find p2os_urdf)/defs/pioneer3at.xacro"/>
 
 </robot>

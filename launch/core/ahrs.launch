@@ -22,4 +22,4 @@
         name="imu2angularspeed"
         args="imu/data imu/yaw std_msgs/Float32 'tf.transformations.euler_from_quaternion([m.orientation.x, m.orientation.y, m.orientation.z, m.orientation.w])[2]' --import tf"/>
 
-<launch>
+</launch>

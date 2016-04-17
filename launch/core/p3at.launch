@@ -1,4 +1,5 @@
 <launch>
+    <arg name="p2os" default="1"/>
     <arg name="ticks_mm" default="135.7"/>
     <arg name="rev_count" default="31390"/>
     <arg name="drift_factor" default="45"/>
@@ -19,8 +20,8 @@
             <param name="max_xspeed" value="$(arg max_speed)"/>
             <param name="max_yawspeed" value="$(arg max_angular_speed)"/>
             <param name="publish_odom_transform" value="false"/>
-            <param param="std_dev_speed" value="$(arg speed_dev)"/>
-            <param param="std_dev_angular_speed" value="$(arg angular_speed_dev)"/>
+            <param name="std_dev_speed" value="$(arg speed_dev)"/>
+            <param name="std_dev_angular_speed" value="$(arg angular_speed_dev)"/>
         </node>
         <node name="rostopic" pkg="rostopic" type="rostopic" args="pub -1 /cmd_motor_state p2os_msgs/MotorState 1"/>
     </group>
@@ -32,4 +33,4 @@
             <param name="DriftFactor" value="$(arg drift_factor)"/>
         </node>
     </group>
-    <launch>
+</launch>

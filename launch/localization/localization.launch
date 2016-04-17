@@ -12,6 +12,9 @@
 
     <arg name="amcl" default="0"/>
     <arg name="amcl_map"/>
+    <arg name="amcl_transformation" default="0 0 0 0 0 0"/>
+    <arg name="amcl_global_frame" default="map"/>
+    
 
     <!-- Launch amcl and map_server -->
 
