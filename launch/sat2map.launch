@@ -5,6 +5,7 @@
     <arg name="android_gps" default="1"/>
     <arg name="gps" default="1"/>
     <arg name="filter_odom" default="1"/>
+    <arg name="filter_map_odom" default="odom"/>
 
     <!-- Define the imu frame -->
     <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="0.15 0 0.47 0 0 0 base_link imu 100"/>
@@ -60,7 +61,7 @@
         <param name="sensor_timeout" value="0.1"/>
         <param name="two_d_mode" value="true"/>
 
-        <param name="odom_frame" value="odom"/>
+        <param name="odom_frame" value="$(arg filter_map_odom)"/>
         <param name="base_link_frame" value="base_link"/>
         <param name="world_frame" value="map"/>
 
