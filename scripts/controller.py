@@ -28,7 +28,7 @@ class Controller(object):
     # utm 32N: EPSG:32632
     # utm 31N: EPSG:32631
 
-    def utm_pose(lat, lon):
+    def utm_pose(self, lat, lon):
         #WGS84
         p1 = pyproj.Proj(init='epsg:4326')
         p2 = pyproj.Proj(init=self.utm_proj)
@@ -38,9 +38,11 @@ class Controller(object):
         msg.header.frame_id = "utm"
         msg.pose.position.x = x
         msg.pose.position.y = y
+        msg.pose.orientation.w = 1
         return msg
 
     def has_received_gps_wp(self, msg):
+        print 'XXXX', msg
         if self.state == AUTO:
             lat = msg.latitude
             lon = msg.longitude
@@ -83,7 +85,7 @@ class Controller(object):
                 
         #read list of poses from parameters:
 
-        utm_proj = rospy.get_param("~utm","epsg:32632")
+        self.utm_proj = rospy.get_param("~utm","epsg:32632")
 
         # Subscribe to the move_base action server
         self.move_base = actionlib.SimpleActionClient("move_base", MoveBaseAction)
