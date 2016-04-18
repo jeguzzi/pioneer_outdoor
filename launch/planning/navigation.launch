@@ -87,9 +87,9 @@
     </node>
 
 <!-- Main Control -->
-<node pkg="pioneer_outdoor" name="controller" type="controller.py>
+<node pkg="pioneer_outdoor" name="controller" type="controller.py">
       <param name="utm_proj" value="epsg:3263"/>
-      <remap name="odometry" value="/odometry/filtered"/>
+      <remap from="odometry" to="/odometry/filtered"/>
 </node>
 
 
