@@ -85,4 +85,12 @@
         <remap from="cmd_vel" to="des_vel"/>
 
     </node>
+
+<!-- Main Control -->
+<node pkg="pioneer_outdoor" name="controller" type="controller.py>
+      <param name="utm_proj" value="epsg:3263"/>
+      <remap name="odometry" value="/odometry/filtered"/>
+</node>
+
+
 </launch>

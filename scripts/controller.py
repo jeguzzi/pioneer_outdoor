@@ -92,7 +92,7 @@ class Controller(object):
         self.move_base_wp = rospy.Publisher("move_base_simple/goal", PoseStamped, queue_size=1)
               
         #Subscribe to gps topic containing a target datum
-        rospy.Subscriber('~waypoint', NavSatFix, self.has_received_gps_wp)
+        rospy.Subscriber('waypoint', NavSatFix, self.has_received_gps_wp)
 
         #Subscribe to the joystick
         rospy.Subscriber('joy', Joy, self.has_received_joy)
