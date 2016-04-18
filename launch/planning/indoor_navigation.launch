@@ -1,6 +1,8 @@
 <launch>
 
    <arg name="inflation_radius" default="0.5"/>
+   <arg name="sick" default="0"/>
+   <arg name="hokuyo" default="0"/>
 
    <include file="$(find pioneer_outdoor)/launch/planning/navigation.launch">
      <arg name="use_amcl_map" value="1"/>
@@ -11,6 +13,8 @@
      <arg name="range_tolerance" value="0.3"/>
      <arg name="yaw_tolerance" value="0.3"/>
      <arg name="inflation_radius" value="$(arg inflation_radius)"/>
+     <arg name="sick" value="$(arg sick)"/>
+     <arg name="hokuyo" value="$(arg hokuyo)"/>
    </include>
 
 </launch>
