@@ -14,6 +14,8 @@
     <arg name="drift_factor" default="45"/>
     <arg name="debug_compass" default="0"/>
     <arg name="p2os" default="1"/>
+    <arg name="multimaster" default="1"/>
+
 
     <!-- Start the robot -->
     <include if="$(arg robot)" file="$(find pioneer_outdoor)/launch/core/p3at.launch">
@@ -51,5 +53,8 @@
     <include file="$(find pioneer_outdoor)/launch/core/urdf.launch">
       <arg name="model" value="$(arg model)"/>
     </include>
+
+
+    <node pkg="master_discovery_fkie" type="master_discovery" name="master_discovery" if="$(arg multimaster)"/>
 
 </launch>
