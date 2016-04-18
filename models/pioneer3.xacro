@@ -5,7 +5,7 @@
        xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
        xmlns:xacro="http://ros.org/wiki/xacro"
 name="pioneer3at">
-<include filename="$(find pioneer_outdoor)/models/pioneer.xacro"/>
+<xacro:include filename="$(find pioneer_outdoor)/models/pioneer.xacro"/>
 <link name="laser"/>
 <link name="gps"/>
 <link name="imu"/>
