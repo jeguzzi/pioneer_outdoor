@@ -10,7 +10,7 @@
     <arg name="robot_device" default="$(optenv robot /dev/myrobot)"/>
     <!-- p2os_driver use public, while rosaria private node handles.
          To uniforme, let's add a ns to p2os_driver -->
-    <group if="$(arg p2os)" ns="p3at">
+    <group if="$(arg p2os)">
         <node pkg="p2os_driver" name="p3at" type="p2os_driver" respawn="true" respawn_delay="30">
             <param name="port" value="$(arg robot_device)"/>
             <param name="pulse" value="1.0"/>
@@ -23,7 +23,7 @@
             <param name="std_dev_speed" value="$(arg speed_dev)"/>
             <param name="std_dev_angular_speed" value="$(arg angular_speed_dev)"/>
         </node>
-        <node name="rostopic" pkg="rostopic" type="rostopic" args="pub -1 /cmd_motor_state p2os_msgs/MotorState 1"/>
+        <node name="rostopic" pkg="rostopic" type="rostopic" args="pub -1 p3at/cmd_motor_state p2os_msgs/MotorState 1"/>
     </group>
     <group unless="$(arg p2os)">
         <node pkg="rosaria" name="p3at" type="rosaria" respawn="true" respawn_delay="30">
