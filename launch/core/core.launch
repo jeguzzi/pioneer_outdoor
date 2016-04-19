@@ -1,4 +1,7 @@
 <launch>
+
+    
+
     <!-- Defining the arguments -->
     <arg name="hokoyu" default="0"/>
     <arg name="sick" default="0"/>
@@ -16,7 +19,7 @@
     <arg name="p2os" default="1"/>
     <arg name="multimaster" default="1"/>
 
-
+    <group ns="$(env HOSTNAME)">
     <!-- Start the robot -->
     <include if="$(arg robot)" file="$(find pioneer_outdoor)/launch/core/p3at.launch">
       <arg name="ticks_mm" value="$(arg ticks_mm)"/>
@@ -56,5 +59,9 @@
 
 
     <node pkg="master_discovery_fkie" type="master_discovery" name="master_discovery" if="$(arg multimaster)"/>
+    <node pkg="master_sync_fkie" type="master_sync" name="master_sync" if="$(arg multimaster)">
+    	  <rosparam param="sync_topics">[joy]</rosparam>  
+    </node>
+    </group>
 
 </launch>
