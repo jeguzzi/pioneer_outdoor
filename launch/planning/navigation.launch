@@ -22,6 +22,9 @@
     <arg name="range_tolerance" default="0.3"/>
     <arg name="yaw_tolerance" default="0.3"/>
 
+    <group ns="$(env HOSTNAME)">
+
+
     <node unless="$(arg use_amcl_map)" name="navigation_map_server" pkg="map_server" type="map_server" args="$(arg map)">
         <param name="frame_id" value="$(arg map_frame)"/>
     </node>
@@ -87,10 +90,15 @@
     </node>
 
 <!-- Main Control -->
+
+<remap from="controller/odometry" to="odometry/filtered"/>
+
 <node pkg="pioneer_outdoor" name="controller" type="controller.py">
       <param name="utm_proj" value="epsg:3263"/>
-      <remap from="odometry" to="/odometry/filtered"/>
+      
 </node>
 
+
+</group>
 
 </launch>

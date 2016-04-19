@@ -18,6 +18,8 @@
     <arg name="amcl_global" default="$(arg gps)"/>
     
 
+    <group ns="$(env HOSTNAME)">
+
     <!-- Launch amcl and map_server -->
 
     <include if="$(arg amcl)" file="$(find pioneer_outdoor)/launch/localization/amcl.launch">
@@ -150,5 +152,7 @@
 
         <remap from="odometry/filtered" to="odometry/odom"/>
     </node>
+
+    </group>
 
 </launch>
