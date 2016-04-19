@@ -15,6 +15,7 @@
     <arg name="amcl_map_frame" default="amcl_map"/>
     <arg name="amcl_transformation" default="0 0 0 0 0 0"/>
     <arg name="amcl_global_frame" default="map"/>
+    <arg name="amcl_global" default="$(arg gps)"/>
     
 
     <!-- Launch amcl and map_server -->
@@ -22,7 +23,7 @@
     <include if="$(arg amcl)" file="$(find pioneer_outdoor)/launch/localization/amcl.launch">
       <arg name="global_frame" value="$(arg amcl_global_frame)"/>
       <arg name="transformation" default="$(arg amcl_transformation)"/>
-      <arg name="global" value="$(arg gps)"/>
+      <arg name="global" value="$(arg amcl_global)"/>
       <arg name="map" value="$(arg amcl_map)"/>
       <arg name="map_frame" value="$(arg amcl_map_frame)"/>	
     </include>

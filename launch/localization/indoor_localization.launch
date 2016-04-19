@@ -9,6 +9,7 @@
      <arg name="amcl_map_frame" value="map"/>	
      <arg name="filter_map" value="1"/>
      <arg name="amcl" value="1"/>
+     <arg name="amcl_global" value="0"/>
      <arg name="compass" value="false"/>
    </include>
 
