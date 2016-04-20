@@ -1,0 +1,24 @@
+<launch>
+	<arg name="target"/>
+	<node name="udp_receiver" pkg="nimbro_topic_transport" type="udp_receiver" output="screen">
+	      <param name="port" value="8888"/>
+	</node>
+	<node name="udp_sender" pkg="nimbro_topic_transport" type="udp_sender" output="screen">
+              <param name="destination_addr" value="$(arg target)" />
+              <param name="destination_port" value="9999" />
+              <rosparam param="topics" subst_value="true">
+- name: "/$(env HOSTNAME)/odometry/filtered"
+  compress: true
+  rate: 1.0
+- name: "/$(env HOSTNAME)/gps/filtered"
+  compress: true
+  rate: 1.0
+- name: "/$(env HOSTNAME)/camera/image_raw/compressed"
+  compress: false
+  rate: 1.0
+- name: "/$(env HOSTNAME)/p3at/battery_state"
+  compress: true
+  rate: 1.0
+</rosparam>
+	</node>
+</launch>

@@ -1,0 +1,6 @@
+<launch>
+    <node pkg="master_discovery_fkie" type="master_discovery" name="master_discovery" if="$(arg multimaster)"/>
+    <node pkg="master_sync_fkie" type="master_sync" name="master_sync" if="$(arg multimaster)">
+    	  <rosparam param="sync_topics">[joy]</rosparam>
+    </node>
+</launch>
