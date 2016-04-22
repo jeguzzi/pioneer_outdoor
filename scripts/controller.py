@@ -60,7 +60,7 @@ class Controller(object):
             p = pose.pose.position
             o = pose.pose.orientation
             a = asin(o.z)*2
-            self.set_param("~home",[p.x. p.y, a, pose.header.frame_id])
+            rospy.set_param("~home",[p.x. p.y, a, pose.header.frame_id])
 
     def home(self):
         try:

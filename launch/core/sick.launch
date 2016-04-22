@@ -1,7 +1,7 @@
 <launch>
     <arg name="laser_device" default="$(optenv laser /dev/mylaser)"/>
 
-    <node pkg="sicktoolbox_wrapper" type="sicklms" name="sicklms_node">
+    <node pkg="sicktoolbox_wrapper" type="sicklms" name="sicklms_node" respawn="true" respawn_delay="30">
         <param name="port" type="string" value="$(arg laser_device)"/>
         <param name="baud" type="int" value="38400"/>
     </node>

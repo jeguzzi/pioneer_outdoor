@@ -1,7 +1,7 @@
 <launch>
     <arg name="laser_device" default="$(optenv laser /dev/mylaser)"/>
 
-    <node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node">
+    <node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node" respawn="true" respawn_delay="30">
         <param name="port" value="$(arg laser_device)"/>
     </node>
 </launch>

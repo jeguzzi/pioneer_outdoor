@@ -26,7 +26,7 @@
         <node name="rostopic" pkg="rostopic" type="rostopic" args="pub -1 p3at/cmd_motor_state p2os_msgs/MotorState 1"/>
     </group>
     <group unless="$(arg p2os)">
-        <node pkg="rosaria" name="p3at" type="rosaria" respawn="true" respawn_delay="30">
+        <node pkg="rosaria" name="p3at" type="RosAria" respawn="true" respawn_delay="30">
             <param name="port" value="$(arg robot_device)"/>
             <param name="TicksMM" value="$(arg ticks_mm)"/>
             <param name="RevCount" value="$(arg rev_count)"/>

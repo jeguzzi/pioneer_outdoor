@@ -53,7 +53,7 @@
         </rosparam>
 
         <rosparam file="$(find p2os_launch)/launch/global_planner_params.yaml" command="load"/>
-
+	<!--<param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>-->
         <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
         <rosparam file="$(find p2os_launch)/launch/costmap_common_params_p3at.yaml" command="load" ns="local_costmap"/>
         <rosparam ns="local_costmap" subst_value="true">
@@ -93,11 +93,12 @@
 
 <remap from="controller/odometry" to="odometry/filtered"/>
 
+<!--
 <node pkg="pioneer_outdoor" name="controller" type="controller.py">
       <param name="utm_proj" value="epsg:3263"/>
       
 </node>
-
+-->
 
 </group>
 

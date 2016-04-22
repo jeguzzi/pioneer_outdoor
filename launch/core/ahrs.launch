@@ -4,7 +4,7 @@
     <arg name="angular_velocity_stddev" default="0.002428"/>
     <arg name="orientation_stddev" default="0.002143"/>
 
-    <node pkg="myahrs_driver" type="myahrs_driver" name="ahrs">
+    <node pkg="myahrs_driver" type="myahrs_driver" name="ahrs" respawn="true" respawn_delay="30">
         <param name="port" value="$(arg ahrs_device)"/>
         <param name="frame_id" value="imu"/>
         <param name="publish_tf" value="false"/>

@@ -10,7 +10,7 @@
         <param name="frame_id" value="$(arg map_frame)"/>
     </node>
 
-    <node if="$(arg global)" pkg="tf" type="static_transform_publisher" name="amcl_to_global" args="$(arg transformation) $(arg map_frame) $(arg global_frame) 100"/>
+    <node if="$(arg global)" pkg="tf" type="static_transform_publisher" name="amcl_to_global" args="$(arg transformation)  $(arg global_frame) $(arg map_frame) 100"/>
 
     <node pkg="amcl" type="amcl" name="amcl">
         <!-- Publish scans from best pose at a max of 10 Hz -->

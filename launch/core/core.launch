@@ -16,7 +16,7 @@
     <arg name="rev_count" default="31390"/>
     <arg name="drift_factor" default="45"/>
     <arg name="debug_compass" default="0"/>
-    <arg name="p2os" default="1"/>
+    <arg name="p2os" default="0"/>
     
     <group ns="$(env HOSTNAME)">
     <!-- Start the robot -->
