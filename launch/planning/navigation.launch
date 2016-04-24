@@ -3,8 +3,8 @@
     <arg name="use_amcl_map" default="1"/>
     <arg name="map"/>
     <arg name="map_frame" default="map"/>
-    <arg name="sick" default="0"/>
-    <arg name="hokuyo" default="0"/>
+    <arg name="sick" default="$(optenv use_sick 0)"/>
+    <arg name="hokuyo" default="$(optenv use_hokuyo 0)"/>
 
     <!-- Cost map -->
 
