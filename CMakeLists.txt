@@ -137,7 +137,7 @@ catkin_package(
 #############
 
 
-catkin_install_python(PROGRAMS script/lcm_bridge.py
+catkin_install_python(PROGRAMS scripts/lcm_bridge.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 # all install targets should use catkin DESTINATION variables
