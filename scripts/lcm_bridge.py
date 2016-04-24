@@ -3,8 +3,8 @@ import rospy
 from sensor_msgs.msg import NavSatFix
 import lcm
 
-from pose_t import pose_t
-from plan_waypoint_t import plan_waypoint_t
+from pioneer_outdoor.pose_gps_t import pose_t
+from pioneer_outdoor.plan_waypoint_t import plan_waypoint_t
 
 
 

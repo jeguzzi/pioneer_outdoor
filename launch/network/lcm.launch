@@ -1,0 +1,5 @@
+<launch>
+	<node pkg="pioneer_outdoor" name="lcm_bridge" type="lcm_bridge.py">
+	      <param name="id" value="11"/>
+	</node>
+</launch>
