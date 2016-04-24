@@ -9,6 +9,7 @@
     <arg name="map_odom_frame" default="odom"/>
     <arg name="filter_map" default="0"/>
     <arg name="compass" default="false"/>
+    <arg name="map_imu_diff" default="false"/>
 
     <arg name="amcl" default="0"/>
     <arg name="amcl_map"/>
@@ -115,7 +116,7 @@
         <rosparam param="imu0_config" subst_value="true">
             [false, false, false, false, false, $(arg compass), false, false, false, false, false, true, false, false, false]
         </rosparam>
-        <param name="imu0_differential" value="false"/>
+        <param name="imu0_differential" value="$(arg map_imu_diff)"/>
 
         <!-- GPS -->
         <param name="odom1" value="odometry/gps" if="$(arg gps)"/>
@@ -151,8 +152,8 @@
 
         <!-- IMU -->
         <param name="imu0" value="imu/data"/>
-        <rosparam param="imu0_config">
-            [false, false, false, false, false, false, false, false, false, false, false, true, false, false, false]
+        <rosparam param="imu0_config" subst_value="true">
+            [false, false, false, false, false, $(arg compass), false, false, false, false, false, true, false, false, false]
         </rosparam>
         <param name="imu0_differential" value="true"/>
 
