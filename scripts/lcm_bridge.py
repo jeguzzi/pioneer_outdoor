@@ -3,7 +3,7 @@ import rospy
 from sensor_msgs.msg import NavSatFix
 import lcm
 
-from pioneer_outdoor.pose_gps_t import pose_t
+from pioneer_outdoor.pos_gps_t import pos_gps_t
 from pioneer_outdoor.plan_waypoint_t import plan_waypoint_t
 
 
@@ -12,18 +12,20 @@ class LcmBridge(object):
     
     def __init__(self, robot_id, lcm_addr="udpm://239.255.76.67:7667?ttl=1"):
         self.robot_id=robot_id
-        self.waypoint_pub = rospy.Publisher('waypoint', NavSattFix, queue_size=1)
-        rospy.Subscriber('fix', NaVSatFix, self.has_received_fix)
+        self.lcm_addr = lcm_addr
+        self.waypoint_pub = rospy.Publisher('waypoint', NavSatFix, queue_size=1)
+        rospy.Subscriber('fix', NavSatFix, self.has_received_fix)
 
     def __enter__(self):
-        self.lc = lcm.LCM(lcm_addr)
+        self.lc = lcm.LCM(self.lcm_addr)
         self.subscription = self.lc.subscribe("RNPPOS", self.has_received_lcm)
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.lc.unsubscribe(self.subscription)
 
     def publish_lcm_fix(self, lat, lon, alt):
-        msg = pose_t()
+        msg = pos_gps_t()
         channel = "POSE"
         msg.robotid = robotid
         msg.position =  [lon, lat, alt]
@@ -50,12 +52,12 @@ class LcmBridge(object):
 
     def run(self):
         while not rospy.is_shutdown():
-            lc.handle()
+            self.lc.handle()
 
 
 if __name__ == '__main__':
     rospy.init_node('lcm_bridge', anonymous=True)
-    robot_id = rospy.get_param('id')
+    robot_id = rospy.get_param('~id')
     with LcmBridge(robot_id) as bridge:
         try:
             bridge.run()
