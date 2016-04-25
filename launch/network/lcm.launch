@@ -1,5 +1,9 @@
 <launch>
+	<group ns="$(env HOSTNAME)">
 	<node pkg="pioneer_outdoor" name="lcm_bridge" type="lcm_bridge.py">
 	      <param name="id" value="11"/>
+	      <remap from="fix" to="gps/fix"/>
+
 	</node>
+	</group>
 </launch>

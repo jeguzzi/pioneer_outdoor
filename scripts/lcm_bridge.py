@@ -26,10 +26,12 @@ class LcmBridge(object):
 
     def publish_lcm_fix(self, lat, lon, alt):
         msg = pos_gps_t()
-        channel = "POSE"
-        msg.robotid = robotid
-        msg.position =  [lon, lat, alt]
-        msg.orientation = [0,0,0,0]
+        channel = "POSEGPS"
+        msg.robotid = self.robot_id
+        msg.longitude =  lon
+        msg.latitude = lat
+        msg.altitude = alt
+        rospy.loginfo("Sending lcm message %s" % msg)
         self.lc.publish(channel, msg.encode())
 
     def has_received_lcm(self, channel, data):
