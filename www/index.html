@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Pioneer Diagnostics</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--
+     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    -->
+
+     <link rel="stylesheet" href="pioneer_outdoor/bootstrap.min.css">
+    <script src="pioneer_outdoor/jquery.min.js"></script>
+    <script src="pioneer_outdoor/bootstrap.min.js"></script>
+    <script type="text/javascript" src="pioneer_outdoor/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="pioneer_outdoor/roslib.min.js"></script>
+
+
+    <script type="text/javascript" type="text/javascript">
+        // Connecting to ROS
+        // -----------------
+
+        var ros = new ROSLIB.Ros({
+            url: 'ws://192.168.1.1:9090'
+        });
+
+        ros.on('connection', function() {
+            console.log('Connected to websocket server.');
+        });
+
+        ros.on('error', function(error) {
+            console.log('Error connecting to websocket server: ', error);
+        });
+
+        ros.on('close', function() {
+            console.log('Connection to websocket server closed.');
+        });
+
+
+        var levels = {}
+        levels[0] = {
+            "class": "success",
+            "name": "OK",
+            "glyph": "ok-sign"
+        }
+        levels[1] = {
+            "class": "warning",
+            "name": "WARN",
+            "glyph": "exclamation-sign"
+        }
+        levels[2] = {
+            "class": "danger",
+            "name": "ERROR",
+            "glyph": "minus-sign"
+
+        }
+        levels[3] = {
+            "class": "danger",
+            "name": "STALE",
+            "glyph": "arrow-down"
+        }
+
+        String.prototype.format = function() {
+          var formatted = this;
+          for( var arg in arguments ) {
+              formatted = formatted.replace("{" + arg + "}", arguments[arg]);
+          }
+          return formatted;
+       };
+
+
+
+
+
+       var _alerts = {};
+       function add_to_logs(m)
+       {
+          level = levels[m.level]
+          $("#log").append(
+            "<tr class='{0}'><td>{1}</td><td>{2}</td><td>{3}</td></tr>".format(level.class,ds,m.name,m.message));
+       }
+       function add_to_alerts(m)
+       {
+         i = m.name.replace(/[\s//:]+/g, '');
+         level = levels[m.level]
+         if (!(i in _alerts))
+         {
+            _alerts[i]=m;
+            $("#alert").append(
+               "<div id='{0}' data-html='true' data-placement='bottom' data-toggle='popover' data-trigger='hover'/>".format(i))
+         }
+         n=$("#"+i)
+
+         if (m.values.length)
+            n.popover();
+
+         var s= "<ul class='list-group'>"
+         for (var i in m.values) {
+            item=m.values[i];
+            value=item.value;
+            key=item.key;
+            s+="<li class='list-group-item'>"+key+": "+value+"</li>"
+         }
+         s+="</ul>"
+         n.attr("data-content",s)
+         n.attr("class","alert alert-{0}".format(level.class));
+	var etc;
+	if(m.values.length)
+	{
+	   etc="<span class='glyphicon glyphicon-list'/>";
+	}
+	else
+{
+	etc="";
+}
+         n.html("<span class='glyphicon glyphicon-{0}'></span> <strong>{1}</strong> <em>{2}</em>: {3} {4}".format(level.glyph,level.name,m.name,m.message,etc))
+       }
+
+       //
+        // Subscribing to a Topic
+        // ----------------------
+
+        var listener = new ROSLIB.Topic({
+            ros: ros,
+            name: '/diagnostics',
+            messageType: 'diagnostic_msgs/DiagnosticArray'
+        });
+        listener.subscribe(function(ms) {
+            stamp = ms.header.stamp
+            date = new Date(stamp.secs * 1000 + stamp.nsecs / 1000000)
+            ds = date.toLocaleTimeString("en-CH")
+            for (var i = 0; i < ms.status.length; i++) {
+               m = ms.status[i];
+                //add_to_logs(m);
+                add_to_alerts(m);
+
+               //$("#"+i).remove()
+               //console.log("#"+i)
+               //console.log($("#"+i))
+               //_alerts[m.name] = m;
+               // $("#alert").append(
+               //    "<div id='{0}' class='alert alert-{1}'><span class='glyphicons glyphicon-{2}'></span><strong>{3}</strong> {4}</div>".format(i,level.class,level.glyph,level.name,m.name,m.message))
+
+
+            }
+            //listener.unsubscribe();
+            //   {message: "OK", hardware_id: "none", values: Array, name: "pioneer2/pioneer_joy_controller: Joystick Driver Status", level: 0}
+
+            // listener.unsubscribe();
+            // m=message
+        });
+    </script>
+</head>
+<body>
+<div id="alert" class="container">
+
+
+    <!-- <div class="alert alert-success">
+        <strong>Success!</strong> Indicates a successful or positive action.
+    </div>
+
+    <div class="alert alert-info">
+        <strong>Info!</strong> Indicates a neutral informative change or action.
+    </div>
+
+    <div class="alert alert-warning">
+        <strong>Warning!</strong> Indicates a warning that might need attention.
+    </div>
+
+    <div class="alert alert-danger">
+        <strong>Danger!</strong> Indicates a dangerous or potentially negative action.
+    </div> -->
+
+</div>
+
+<div class="container">
+   <h2>Log</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody id="log">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+$(document).ready(function(){
+    $('[data-toggle="popover"]').popover();
+});
+</script>
+
+</body>
+
+
+</html>

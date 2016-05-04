@@ -1,0 +1,27 @@
+<launch>
+
+    <!-- Defining the arguments -->
+    <arg name="robot" default="1"/>
+    <arg name="joystick" default="1"/>
+    <arg name="ticks_mm" default="135.7"/>
+    <arg name="rev_count" default="31390"/>
+    <arg name="drift_factor" default="45"/>
+    <arg name="p2os" default="1"/>
+ 
+   <group ns="$(env HOSTNAME)">
+    <!-- Start the robot -->
+    <include if="$(arg robot)" file="$(find pioneer_outdoor)/launch/core/p3at.launch">
+      <arg name="ticks_mm" value="$(arg ticks_mm)"/>
+      <arg name="rev_count" value="$(arg rev_count)"/>
+      <arg name="drift_factor" value="$(arg drift_factor)"/>
+      <arg name="robot_device" value="$(optenv robot /dev/myrobot)"/>
+      <arg name="p2os" value="$(arg p2os)"/>
+    </include>
+
+    <!-- JOYSTICK -->
+    <!-- Start joy and teleoperation node for joystick control -->
+    <include if="$(arg joystick)" file="$(find pioneer_outdoor)/launch/core/joystick.launch"/>
+
+    </group>
+
+</launch>
