@@ -16,9 +16,10 @@
     <arg name="rev_count" default="31390"/>
     <arg name="drift_factor" default="45"/>
     <arg name="debug_compass" default="0"/>
-    <arg name="p2os" default="0"/>
-    
-    <group ns="$(env HOSTNAME)">
+    <arg name="p2os" default="1"/>
+    <arg name="image_quality" default="15"/>    
+ 
+   <group ns="$(env HOSTNAME)">
     <!-- Start the robot -->
     <include if="$(arg robot)" file="$(find pioneer_outdoor)/launch/core/p3at.launch">
       <arg name="ticks_mm" value="$(arg ticks_mm)"/>
@@ -38,7 +39,9 @@
     </include>
 
     <!-- CAMERA -->
-    <include if="$(arg camera)" file="$(find pioneer_outdoor)/launch/core/camera.launch"/>
+    <include if="$(arg camera)" file="$(find pioneer_outdoor)/launch/core/camera.launch">
+    	     <arg name="quality" value="$(arg image_quality)"/>
+    </include>
 
     <!-- JOYSTICK -->
     <!-- Start joy and teleoperation node for joystick control -->
