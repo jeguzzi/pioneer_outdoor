@@ -1,0 +1,6 @@
+image: road.png
+resolution: 0.050000
+origin: [-103.000000, -107.000000, 0.000000]
+negate: 0
+occupied_thresh: 0.02
+free_thresh: 0.01
