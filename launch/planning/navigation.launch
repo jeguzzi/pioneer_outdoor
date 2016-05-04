@@ -93,12 +93,11 @@
 
 <remap from="controller/odometry" to="odometry/filtered"/>
 
-<!--
+
 <node pkg="pioneer_outdoor" name="controller" type="controller.py">
-      <param name="utm_proj" value="epsg:3263"/>
+      <param name="utm_proj" value="epsg:32631"/>
       
 </node>
--->
 
 </group>
 

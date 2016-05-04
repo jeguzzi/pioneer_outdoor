@@ -1,7 +1,7 @@
 <launch>
    <include file="$(find pioneer_outdoor)/launch/core/core.launch">
       <arg name="hokoyu" value="0"/>
-      <arg name="sick" value="1"/>
+      <arg name="sick" value="0"/>
       <arg name="ahrs" value="1"/>
       <arg name="robot" value="1"/>
       <arg name="joystick" value="1"/>

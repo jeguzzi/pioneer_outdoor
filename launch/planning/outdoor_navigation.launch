@@ -1,16 +1,17 @@
 <launch>
 
    <arg name="inflation_radius" default="0.5"/>
+   <arg name="map" value="$(find pioneer_outdoor)/maps/e/map.yaml)"/>
 
    <include file="$(find pioneer_outdoor)/launch/planning/navigation.launch">
-     <arg name="use_amcl_map" value="1"/>
-     <arg name="global_frame" value="odom"/>
-     <arg name="global_static_map" value="false"/>
+     <arg name="use_amcl_map" value="0"/>
+     <arg name="global_frame" value="map"/>
+     <arg name="global_static_map" value="true"/>
      <arg name="max_speed" value="0.7"/>
      <arg name="max_angular_speed" value="0.8"/>
-     <arg name="range_tolerance" value="1"/>
+     <arg name="range_tolerance" value="2"/>
      <arg name="yaw_tolerance" value="1"/>
-
+     <arg name="map" value="$(arg map)"/>
      <arg name="inflation_radius" value="$(arg inflation_radius)"/>
 
    </include>

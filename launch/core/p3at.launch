@@ -11,7 +11,7 @@
     <!-- p2os_driver use public, while rosaria private node handles.
          To uniforme, let's add a ns to p2os_driver -->
     <group if="$(arg p2os)">
-        <node pkg="p2os_driver" name="p3at" type="p2os_driver" respawn="true" respawn_delay="30">
+        <node pkg="p2os_driver" name="p3at" type="p2os_driver" required="true">
             <param name="port" value="$(arg robot_device)"/>
             <param name="pulse" value="1.0"/>
             <param name="ticksmm" value="$(arg ticks_mm)"/>
@@ -26,7 +26,7 @@
         <node name="rostopic" pkg="rostopic" type="rostopic" args="pub -1 p3at/cmd_motor_state p2os_msgs/MotorState 1"/>
     </group>
     <group unless="$(arg p2os)">
-        <node pkg="rosaria" name="p3at" type="RosAria" respawn="true" respawn_delay="30">
+        <node pkg="rosaria" name="p3at" type="RosAria" required="true">
             <param name="port" value="$(arg robot_device)"/>
             <param name="TicksMM" value="$(arg ticks_mm)"/>
             <param name="RevCount" value="$(arg rev_count)"/>

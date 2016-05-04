@@ -2,7 +2,7 @@
 	<group ns="$(env HOSTNAME)">
 	<node pkg="pioneer_outdoor" name="lcm_bridge" type="lcm_bridge.py">
 	      <param name="id" value="$(optenv lcm_id 11)"/>
-	      <remap from="fix" to="gps/fix"/>
+	      <remap from="fix" to="fix"/>
 	</node>
 	</group>
 </launch>

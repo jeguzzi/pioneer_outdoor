@@ -1,6 +1,6 @@
 <launch>
 
-   <arg name="datum" default="[46.025830, 8.919781, 0.0, map, base_link]"/>
+   <arg name="datum" default="[46.16388, 5.98048, 0.0, map, base_link]"/>
    <arg name="map" value="$(find pioneer_outdoor)/maps/manno/map.yaml"/>
 
    <include file="$(find pioneer_outdoor)/launch/localization/localization.launch">
@@ -8,8 +8,8 @@
      <arg name="gps_topic" default="fix"/>
      <arg name="datum" value="$(arg datum)"/>
      <arg name="filter_map" default="1"/>
-     <arg name="amcl" default="1"/>
-     <arg name="compass" default="false"/>
+     <arg name="amcl" default="0"/>
+     <arg name="compass" default="true"/>
      <arg name="amcl_map" value="$(arg map)"/>
      <arg name="amcl_global" value="1"/>
      <arg name="amcl_global_frame" value="utm"/>
