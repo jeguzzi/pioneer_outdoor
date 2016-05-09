@@ -20,6 +20,7 @@
     <script type="text/javascript" src="pioneer_outdoor/roslib.min.js"></script>
 
 
+
     <script type="text/javascript" type="text/javascript">
         // Connecting to ROS
         // -----------------
@@ -120,6 +121,30 @@
          n.html("<span class='glyphicon glyphicon-{0}'></span> <strong>{1}</strong> <em>{2}</em>: {3} {4}".format(level.glyph,level.name,m.name,m.message,etc))
        }
 
+
+	var cmdVel = new ROSLIB.Topic({
+    ros : ros,
+    name : '/pioneer2/des_vel',
+    messageType : 'geometry_msgs/Twist'
+  });
+
+	function set_velocity(lin,ang)
+{
+  var twist = new ROSLIB.Message({
+    linear : {
+      x : lin,
+      y : 0.0,
+      z : 0.0
+    },
+    angular : {
+      x : 0.0,
+      y : 0.0,
+      z : ang
+    }
+  });
+  cmdVel.publish(twist);
+}
+
        //
         // Subscribing to a Topic
         // ----------------------
@@ -154,9 +179,62 @@
             // m=message
         });
     </script>
+
+
+
 </head>
+
+
 <body>
-<div id="alert" class="container">
+
+
+<div id="joystick"></div>
+
+<ul class="nav nav-pills">
+  <li class="active"><a data-toggle="pill" href="#home">Home</a></li>
+  <li><a data-toggle="pill" href="#menu1">Diagnostic</a></li>
+  <li><a data-toggle="pill" href="#menu2">Joystick</a></li>
+  <li><a data-toggle="pill" href="#menu3">Extra</a></li>
+</ul>
+
+<div class="tab-content">
+  <div id="home" class="tab-pane fade in active">
+    <h3>HOME</h3>
+    <p>Welcome</p>
+  </div>
+  <div id="menu1" class="tab-pane fade">
+    <h3>Diagnostic</h3>
+    <div id="alert" class="container"></div>
+  </div>
+ 
+
+<!--
+<script src="pioneer_outdoor/nipplejs.min.js"></script>
+
+<script>
+    var static = nipplejs.create({
+        zone: document.getElementById('static'),
+        mode: 'static',
+        position: {left: '50%', top: '50%'},
+        color: 'red'
+    });
+</script>
+-->
+
+  </div>
+
+  <div id="menu3" class="tab-pane fade">
+    <h3>Extra</h3>
+    
+  </div>
+
+
+</div>
+
+
+
+
+<!--div id="alert" class="container"-->
 
 
     <!-- <div class="alert alert-success">
@@ -175,8 +253,8 @@
         <strong>Danger!</strong> Indicates a dangerous or potentially negative action.
     </div> -->
 
-</div>
-
+<!--/div-->
+<!--
 <div class="container">
    <h2>Log</h2>
     <div class="table-responsive">
@@ -193,12 +271,59 @@
         </table>
     </div>
 </div>
-
+-->
 <script>
 $(document).ready(function(){
     $('[data-toggle="popover"]').popover();
 });
 </script>
+
+
+<script src="pioneer_outdoor/nipplejs.min.js" charset="utf-8"></script>
+    <script>
+        var joystick = nipplejs.create({
+            zone: document.getElementById('joystick'),
+            mode: 'static',
+            position: {
+                left: '300px',
+                top: '100px'
+            },
+            color: 'blue',
+            size: 200
+        });
+
+        down = false;
+        lin_speed=0;
+        ang_speed=0;
+        max_lin_speed = 0.7;
+        max_ang_speed = 1;
+        size = 100;
+
+        joystick.on('start', function(evt, data) {
+            down = true;
+        });
+
+joystick.on('end', function(evt, data) {
+            down = false;
+        });
+
+        joystick.on('move', function(evt, data) {
+           lin_speed = Math.sin(data.angle.radian)*data.distance*max_lin_speed/size;
+           ang_speed = - Math.cos(data.angle.radian)*data.distance*max_ang_speed/size;
+        });
+
+        setInterval(function() {
+            if(down)
+{
+	set_velocity(lin_speed,ang_speed);
+}
+else
+{
+		set_velocity(0,0);
+}
+
+        }, 100);
+    </script>
 
 </body>
 
