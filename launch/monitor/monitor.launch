@@ -15,4 +15,7 @@
   <arg name="webpath" value="$(arg webpath)"/>
 </include>
 
+<group ns="$(env HOSTNAME)">
+<node pkg="pioneer_outdoor" type="pc.py" name="pc"/>
+</group>
 </launch>

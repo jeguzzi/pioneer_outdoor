@@ -10,9 +10,56 @@ import netifaces
 from docker import Client
 import json
 
+from pioneer_outdoor.msg import DockerContainer, DockerContainers
+from pioneer_outdoor.srv import DockerStopContainer, DockerStartContainer, DockerPauseContainer, DockerUnPauseContainer, DockerSetRestartContainer, 
 class PC(object):
             
 
+    def init_docker_info(self):
+        containers = self.cli.containers()
+        self.containers = [{'stats':self.cli.stats(c['Id']),'id':c['Id'],'name':c['Names'][0]} for c in containers]
+        self.docker_seq = 1
+    def update_docker_info(self, event):
+
+        msgs = DockerContainers()
+        msgs.header.stamp = rospy.Time.now()
+        msgs.header.seq = self.docker_seq
+        self.docker_seq = self.docker_seq + 1
+        for c in self.containers:
+            msg = DockerContainer()
+            msg.name = c['name']
+            
+            data = json.loads(next(c['stats']))
+            # Get start date (string, e.g. 2016-05-10T13:42:43.332441784Z) with state['StartedAt']
+            memory = data['memory_stats']
+            c['memory_usage'] = memory['usage']/1e6
+            c['memory_limit'] = memory['limit']/1e6
+            cpu = data["cpu_stats"]
+            precpu = data["precpu_stats"]
+            cpu_delta = cpu["cpu_usage"]["total_usage"] - precpu["cpu_usage"]["total_usage"]
+            system_delta = cpu["system_cpu_usage"] - precpu["system_cpu_usage"]
+            if system_delta > 0 and cpu_delta > 0:
+                c['cpu'] = cpu_delta / float(system_delta) * len(cpu["cpu_usage"]["percpu_usage"])
+
+            msg.cpu = c['cpu']
+            msg.memory_limit = c['memory_limit']
+            msg.memory_usage = c['memory_usage']            
+
+            inspect = self.cli.inspect_container(c['name'])
+            state = inspect['State']
+            c['status'] = state['Status']
+            msg.status = c['status']
+            config = inspect['HostConfig']
+            restart = config['RestartPolicy']
+            
+            msg.restart_policy = restart['Name']
+            msg.restart_max_retry = restart['MaximumRetryCount']
+
+            msgs.containers.append(msg)
+
+        self.docker_pub.publish(msgs)
+            
+            
     def docker_diagnostics(self, container):
         c_stats = self.cli.stats(container)
         def update(stats):
@@ -77,6 +124,9 @@ class PC(object):
         return update
 
 
+    def update_diagnostics(self, event):
+        self.updater.update()
+
     def __init__(self):
 
         rospy.init_node('pc_controller', anonymous=False)
@@ -89,14 +139,17 @@ class PC(object):
         for iface in ['wlan0','eth0']:
             self.updater.add("Network %s" % iface, self.network_diagnostics(iface))
 
-        for container in ['romantic_hypatia','high_engelbart']:
-            self.updater.add("Docker %s" % container, self.docker_diagnostics(container))
+        #for container in ['romantic_hypatia','high_engelbart']:
+        #    self.updater.add("Docker %s" % container, self.docker_diagnostics(container))
 
         rospy.Subscriber("shutdown", Empty, self.has_received_shutdown)
 
-        while not rospy.is_shutdown():
-            rospy.sleep(1)
-            self.updater.update()
+        self.docker_pub = rospy.Publisher('docker/containers',DockerContainers,queue_size=1)
+        self.init_docker_info()
+        
+        rospy.Timer(rospy.Duration(1), self.update_docker_info, oneshot=False)
+        rospy.Timer(rospy.Duration(1), self.update_diagnostics, oneshot=False)
+        rospy.spin()
         
     def has_received_shutdown(self,msg):
         rospy.loginfo("Begin shutdown");
