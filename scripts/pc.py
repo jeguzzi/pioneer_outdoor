@@ -81,7 +81,7 @@ class PC(object):
 
         rospy.init_node('pc_controller', anonymous=False)
 
-        self.cli = Client(base_url='unix://var/run/docker.sock', version='1.18')
+        self.cli = Client(base_url='unix://var/run/docker.sock', version='1.22')
         self.updater = diagnostic_updater.Updater()
         self.updater.setHardwareID("macmini")
         self.updater.add("CPU", self.cpu_diagnostics)
