@@ -51,7 +51,7 @@
 
 
         function call(srv, name) {
-           console.log('call ' + srv + ' '+ name)
+            console.log('call ' + srv + ' ' + name)
             var request = new ROSLIB.ServiceRequest({
                 name: name,
             });
@@ -283,27 +283,27 @@
         // listener.unsubscribe();
         // m=message
 
-        var stop_srv = new ROSLIB.Service({
+        stop_srv = new ROSLIB.Service({
             ros: ros,
             name: 'pioneer2/docker/stop',
             serviceType: 'pioneer_outdoor/DockerStopContainer'
         });
 
-        var start_srv = new ROSLIB.Service({
+        start_srv = new ROSLIB.Service({
             ros: ros,
             name: 'pioneer2/docker/start',
             serviceType: 'pioneer_outdoor/DockerStartContainer'
         });
 
-        var pause_srv = new ROSLIB.Service({
+        pause_srv = new ROSLIB.Service({
             ros: ros,
-            name: 'pioneer2/docker/stop',
+            name: 'pioneer2/docker/pause',
             serviceType: 'pioneer_outdoor/DockerPauseContainer'
         });
 
-        var unpause_srv = new ROSLIB.Service({
+        unpause_srv = new ROSLIB.Service({
             ros: ros,
-            name: 'pioneer2/docker/stop',
+            name: 'pioneer2/docker/unpause',
             serviceType: 'pioneer_outdoor/DockerUnPauseContainer'
         });
     </script>
