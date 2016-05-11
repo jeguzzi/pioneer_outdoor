@@ -195,49 +195,49 @@
             cc = n.children()
             c1 = $(cc[0])
             c1.attr("class", _state2class[m.status])
-            bs = [1,2,3].map(function(j){return $(cc[j]).find('button');});
+            bs = [1, 2, 3].map(function(j) {
+                return $(cc[j]).find('button');
+            });
             switch (m.status) {
-               case 'running':
-                  //$(bs[0]).prop('disabled', true)
-                  $(bs[0]).hide()
-                  //$(bs[1]).prop('disabled', false)
-                  $(bs[1]).text('Pause')
-                  $(bs[1]).attr("onclick","pause('{0}')".format(i))
-                  $(bs[1]).show()
-                  $(bs[2]).show()
-                  //$(bs[2]).prop('disabled', false)
-                  break;
-               case 'paused':
-                  //$(bs[0]).prop('disabled', true)
-                  $(bs[0]).hide()
-                  //$(bs[1]).prop('disabled', false)
-                  $(bs[1]).text('Unpause')
-                  $(bs[1]).attr("onclick","unpause('{0}')".format(i))
-                  $(bs[1]).show()
-                  $(bs[2]).hide()
-                  //$(bs[2]).prop('disabled', true)
-                  break;
-               case 'exited':
-                  //$(bs[0]).prop('disabled', false)
-                  $(bs[0]).show()
-                  //$(bs[1]).prop('disabled', true)
-                  $(bs[1]).hide()
-                  //$(bs[2]).prop('disabled', true)
-                  $(bs[2]).hide()
-                  break;
-               default:
+                case 'running':
+                    //$(bs[0]).prop('disabled', true)
+                    $(bs[0]).hide()
+                        //$(bs[1]).prop('disabled', false)
+                    $(bs[1]).text('Pause')
+                    $(bs[1]).attr("onclick", "pause('{0}')".format(i))
+                    $(bs[1]).show()
+                    $(bs[2]).show()
+                        //$(bs[2]).prop('disabled', false)
+                    break;
+                case 'paused':
+                    //$(bs[0]).prop('disabled', true)
+                    $(bs[0]).hide()
+                        //$(bs[1]).prop('disabled', false)
+                    $(bs[1]).text('Unpause')
+                    $(bs[1]).attr("onclick", "unpause('{0}')".format(i))
+                    $(bs[1]).show()
+                    $(bs[2]).hide()
+                        //$(bs[2]).prop('disabled', true)
+                    break;
+                case 'exited':
+                    //$(bs[0]).prop('disabled', false)
+                    $(bs[0]).show()
+                        //$(bs[1]).prop('disabled', true)
+                    $(bs[1]).hide()
+                        //$(bs[2]).prop('disabled', true)
+                    $(bs[2]).hide()
+                    break;
+                default:
             }
 
             //...
             c3 = $(cc[4])
             c3.text('{0}%'.format((100 * m.cpu).toFixed(1)))
             c4 = $(cc[5])
-            if(m.memory_limit>0)
-            {
-               mem_p = (100 * m.memory_usage / m.memory_limit).toFixed(1)
-            }
-            else {
-               mem_p = 0
+            if (m.memory_limit > 0) {
+                mem_p = (100 * m.memory_usage / m.memory_limit).toFixed(1)
+            } else {
+                mem_p = 0
             }
             c4.text('{0} MB ({1}%)'.format((m.memory_usage).toFixed(0), mem_p))
             c5 = $(cc[6])
@@ -249,24 +249,23 @@
             }
             s.bootstrapSwitch();
             //Stil need to implement on the server
-            s.on('switchChange.bootstrapSwitch', function( event, state) {
-               set_restart(i, state)
+            s.on('switchChange.bootstrapSwitch', function(event, state) {
+                set_restart(i, state)
             });
         }
 
 
-        function set_restart(i, state)
-        {
-           var policy = state? 'always' : 'no'
-           console.log('set restart ' + i + ' to ' + policy)
-           var request = new ROSLIB.ServiceRequest({
-               name: name,
-               policy: policy,
-               max_retry: 0
-           });
-           restart_policy_srv.callService(request, function(result) {
-               console.log(result.response);
-           });
+        function set_restart(i, state) {
+            var policy = state ? 'always' : 'no'
+            console.log('set restart ' + i + ' to ' + policy)
+            var request = new ROSLIB.ServiceRequest({
+                name: name,
+                policy: policy,
+                max_retry: 0
+            });
+            restart_policy_srv.callService(request, function(result) {
+                console.log(result.response);
+            });
         }
 
         var cmdVel = new ROSLIB.Topic({
@@ -378,84 +377,94 @@
 
 
 <body>
+<div class="container-fluid">
+   <div class="row">
+     <div class="col-sm-10">
+        <ul class="nav nav-pills">
+            <li class="active"><a data-toggle="pill" href="#menu1">Diagnostics</a></li>
+            <li><a data-toggle="pill" href="#menu2">Docker</a></li>
+        </ul>
 
-    <div id="joystick_"></div>
+        <div class="tab-content">
+            <div id="menu1" class="tab-pane fade in active">
+                <h3>Diagnostic</h3>
+                <div id="alert"></div>
+            </div>
+            <div id="menu2" class="tab-pane fade in">
+                <h3>Docker Containers</h3>
+                <div>
+                    <div class="table-responsive">
+                        <table class="table">
+                           <thead>
+                                <th>
 
-    <ul class="nav nav-pills">
-        <li class="active"><a data-toggle="pill" href="#menu1">Diagnostics</a></li>
-        <li><a data-toggle="pill" href="#menu2">Docker</a></li>
-    </ul>
+                                </th>
+                                <th>
 
-    <div class="tab-content">
-        <div id="menu1" class="tab-pane fade in active">
-            <h3>Diagnostic</h3>
-            <div id="alert" class="container"></div>
-        </div>
-        <div id="menu2" class="tab-pane fade in active">
-            <h3>Docker Containers</h3>
-            <div class="container">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <th>
+                                </th>
+                                <th/>
+                                <th/>
+                                <th>
+                                    CPU
+                                </th>
+                                <th>
+                                    Memory
+                                </th>
+                                <th>
+                                    Boot
+                                </th>
+                           </thead>
+                           <tbody id="containers">
+                                <!-- <tr>
+                                    <td style="vertical-align:middle; text-align:center" class=" success"><strong>Name</strong></td>
+                                    <td>
+                                        <button type="button" class="btn btn-success disabled">Start</button>
+                                        <button type="button" class="btn btn-warning">Pause</button>
+                                        <button type="button" class="btn btn-danger">Stop</button>
+                                    </td>
+                                    <td>
+                                        8%
+                                    </td>
+                                    <td>
+                                        64 MB (10%)
+                                    </td>
+                                    <td>
+                                        <input type="checkbox" name="my-checkbox" checked>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle; text-align:center" class="danger"><strong>Name 2</strong></td>
+                                    <td>
+                                        <button type="button" class="btn btn-success">Start</button>
+                                        <button type="button" class="btn btn-warning">Pause</button>
+                                        <button type="button" class="btn btn-danger disabled">Stop</button>
+                                    </td>
+                                    <td>
+                                        13%
+                                    </td>
+                                    <td>
+                                        14 MB (3%)
+                                    </td>
+                                    <td>
+                                        <input type="checkbox" name="my-checkbox" checked>
+                                    </td>
+                                </tr> -->
 
-                            </th>
-                            <th>
-
-                            </th>
-                            <th/> <th/>
-                            <th>
-                                CPU
-                            </th>
-                            <th>
-                                Memory
-                            </th>
-                            <th>
-                                Boot
-                            </th>
-                        </thead>
-                        <tbody id="containers">
-                            <!-- <tr>
-                                <td style="vertical-align:middle; text-align:center" class=" success"><strong>Name</strong></td>
-                                <td>
-                                    <button type="button" class="btn btn-success disabled">Start</button>
-                                    <button type="button" class="btn btn-warning">Pause</button>
-                                    <button type="button" class="btn btn-danger">Stop</button>
-                                </td>
-                                <td>
-                                    8%
-                                </td>
-                                <td>
-                                    64 MB (10%)
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="my-checkbox" checked>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="vertical-align:middle; text-align:center" class="danger"><strong>Name 2</strong></td>
-                                <td>
-                                    <button type="button" class="btn btn-success">Start</button>
-                                    <button type="button" class="btn btn-warning">Pause</button>
-                                    <button type="button" class="btn btn-danger disabled">Stop</button>
-                                </td>
-                                <td>
-                                    13%
-                                </td>
-                                <td>
-                                    14 MB (3%)
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="my-checkbox" checked>
-                                </td>
-                            </tr> -->
-
-                        </tbody>
-                    </table>
+                           </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+
+     </div>
+     <div class="col-sm-2">
+     <div id="joystick"></div>
+  </div>
+   </div>
+</div>
+
+
     <!--
 <script src="pioneer_outdoor/nipplejs.min.js"></script>
 
@@ -526,15 +535,16 @@
     <script src="pioneer_outdoor/nipplejs.min.js" charset="utf-8"></script>
     <!-- <script src="nipplejs.min.js" charset="utf-8"></script> -->
     <script>
+      size = 60;
         var joystick = nipplejs.create({
             zone: document.getElementById('joystick'),
             mode: 'static',
             position: {
-                left: '800px',
-                top: '100px'
+                left: size+'px',
+                top: size+100+'px'
             },
             color: 'blue',
-            size: 200
+            size: size*2
         });
 
 
@@ -544,7 +554,7 @@
         ang_speed = 0;
         max_lin_speed = 0.7;
         max_ang_speed = 1;
-        size = 100;
+
 
         joystick.on('start', function(evt, data) {
             down = true;
