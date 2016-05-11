@@ -18,8 +18,10 @@
     <script src="pioneer_outdoor/bootstrap.min.js"></script>
     <script type="text/javascript" src="pioneer_outdoor/eventemitter2.min.js"></script>
     <script type="text/javascript" src="pioneer_outdoor/roslib.min.js"></script>
+    <link href="pioneer_outdoor/bootstrap-switch.min.css" rel="stylesheet">
+    <script src="pioneer_outdoor/bootstrap-switch.min.js"></script>
 
-    <link rel="stylesheet" href="bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="bootstrap.min.css">
     <script src="jquery.min.js"></script>
     <script src="bootstrap.min.js"></script>
     <script type="text/javascript" src="eventemitter2.min.js"></script>
@@ -27,7 +29,7 @@
 
 
     <link href="bootstrap-switch.min.css" rel="stylesheet">
-    <script src="bootstrap-switch.min.js"></script>
+    <script src="bootstrap-switch.min.js"></script> -->
 
     <script type="text/javascript" type="text/javascript">
         // Connecting to ROS
@@ -100,7 +102,10 @@
         }
 
         _state2class = {
-            "running": "success"
+            "running": "success",
+            "exited": "danger",
+            "paused": "warning",
+            "removed": "info"
         }
 
 
@@ -167,7 +172,11 @@
                    <td style="vertical-align:middle; text-align:center"><strong>{1}</strong></td>
                    <td>
                    <button type="button" class="btn btn-success" onclick="start('{2}')">Start</button>
+                   </td>
+                   <td>
                    <button type="button" class="btn btn-warning" onclick="pause('{3}')">Pause</button>
+                   </td>
+                   <td>
                    <button type="button" class="btn btn-danger" onclick="stop('{4}')">Stop</button>
                    </td>
                    <td>
@@ -175,7 +184,7 @@
                    <td>
                    </td>
                    <td>
-                     <input type="checkbox" name="my-checkbox" checked>
+                     <input type="checkbox" name="my-checkbox" disabled>
                    </td>
                    </tr>
                    `
@@ -186,20 +195,52 @@
             cc = n.children()
             c1 = $(cc[0])
             c1.attr("class", _state2class[m.status])
-            c2 = $(cc[1])
-            bs = c2.children()
-            if (m.status == 'running') {
-                $(bs[0]).addClass('disabled')
-                $(bs[1]).removeClass('disabled')
-                $(bs[2]).removeClass('disabled')
+            bs = [1,2,3].map(function(j){return $(cc[j]).find('button');});
+            switch (m.status) {
+               case 'running':
+                  //$(bs[0]).prop('disabled', true)
+                  $(bs[0]).hide()
+                  //$(bs[1]).prop('disabled', false)
+                  $(bs[1]).text('Pause')
+                  $(bs[1]).attr("onclick","pause('{0}')".format(i))
+                  $(bs[1]).show()
+                  $(bs[2]).show()
+                  //$(bs[2]).prop('disabled', false)
+                  break;
+               case 'paused':
+                  //$(bs[0]).prop('disabled', true)
+                  $(bs[0]).hide()
+                  //$(bs[1]).prop('disabled', false)
+                  $(bs[1]).text('Unpause')
+                  $(bs[1]).attr("onclick","unpause('{0}')".format(i))
+                  $(bs[1]).show()
+                  $(bs[2]).hide()
+                  //$(bs[2]).prop('disabled', true)
+                  break;
+               case 'exited':
+                  //$(bs[0]).prop('disabled', false)
+                  $(bs[0]).show()
+                  //$(bs[1]).prop('disabled', true)
+                  $(bs[1]).hide()
+                  //$(bs[2]).prop('disabled', true)
+                  $(bs[2]).hide()
+                  break;
+               default:
             }
+
             //...
-            c3 = $(cc[2])
+            c3 = $(cc[4])
             c3.text('{0}%'.format((100 * m.cpu).toFixed(1)))
-            c4 = $(cc[3])
-            mem_p = (100 * m.memory_usage / m.memory_limit).toFixed(1)
+            c4 = $(cc[5])
+            if(m.memory_limit>0)
+            {
+               mem_p = (100 * m.memory_usage / m.memory_limit).toFixed(1)
+            }
+            else {
+               mem_p = 0
+            }
             c4.text('{0} MB ({1}%)'.format((m.memory_usage).toFixed(0), mem_p))
-            c5 = $(cc[4])
+            c5 = $(cc[6])
             s = c5.find('input')
             if (m.restart_policy == 'always') {
                 s.prop('checked', true);
@@ -207,8 +248,26 @@
                 s.prop('checked', false);
             }
             s.bootstrapSwitch();
+            //Stil need to implement on the server
+            s.on('switchChange.bootstrapSwitch', function( event, state) {
+               set_restart(i, state)
+            });
         }
 
+
+        function set_restart(i, state)
+        {
+           var policy = state? 'always' : 'no'
+           console.log('set restart ' + i + ' to ' + policy)
+           var request = new ROSLIB.ServiceRequest({
+               name: name,
+               policy: policy,
+               max_retry: 0
+           });
+           restart_policy_srv.callService(request, function(result) {
+               console.log(result.response);
+           });
+        }
 
         var cmdVel = new ROSLIB.Topic({
             ros: ros,
@@ -286,25 +345,30 @@
         stop_srv = new ROSLIB.Service({
             ros: ros,
             name: 'pioneer2/docker/stop',
-            serviceType: 'pioneer_outdoor/DockerStopContainer'
+            serviceType: 'pioneer_outdoor/DockerContainerCmd'
         });
 
         start_srv = new ROSLIB.Service({
             ros: ros,
             name: 'pioneer2/docker/start',
-            serviceType: 'pioneer_outdoor/DockerStartContainer'
+            serviceType: 'pioneer_outdoor/DockerContainerCmd'
         });
 
         pause_srv = new ROSLIB.Service({
             ros: ros,
             name: 'pioneer2/docker/pause',
-            serviceType: 'pioneer_outdoor/DockerPauseContainer'
+            serviceType: 'pioneer_outdoor/DockerContainerCmd'
         });
 
         unpause_srv = new ROSLIB.Service({
             ros: ros,
             name: 'pioneer2/docker/unpause',
-            serviceType: 'pioneer_outdoor/DockerUnPauseContainer'
+            serviceType: 'pioneer_outdoor/DockerContainerCmd'
+        });
+        restart_policy_srv = new ROSLIB.Service({
+            ros: ros,
+            name: 'pioneer2/docker/restart_policy',
+            serviceType: 'pioneer_outdoor/DockerSetRestartContainer'
         });
     </script>
 
@@ -339,6 +403,7 @@
                             <th>
 
                             </th>
+                            <th/> <th/>
                             <th>
                                 CPU
                             </th>
@@ -459,7 +524,7 @@
 
 
     <script src="pioneer_outdoor/nipplejs.min.js" charset="utf-8"></script>
-    <script src="nipplejs.min.js" charset="utf-8"></script>
+    <!-- <script src="nipplejs.min.js" charset="utf-8"></script> -->
     <script>
         var joystick = nipplejs.create({
             zone: document.getElementById('joystick'),
