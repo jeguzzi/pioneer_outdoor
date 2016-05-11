@@ -343,6 +343,28 @@
             cmdVel.publish(twist);
         }
 
+        var shutdownT = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/shutdown',
+            messageType: 'std_msgs/Empty'
+        });
+
+        var rebootT = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/shutdown',
+            messageType: 'std_msgs/Empty'
+        });
+
+        var empty = new ROSLIB.Message({})
+
+        function shutdown() {
+            shutdownT.publish(empty);
+        }
+        function reboot() {
+            rebootT.publish(empty);
+        }
+
+
         //
         // Subscribing to a Topic
         // ----------------------
@@ -477,6 +499,7 @@
                     <li><a data-toggle="pill" href="#menu2">Docker</a></li>
                     <li><a data-toggle="pill" href="#menu3">Camera</a></li>
                     <li><a data-toggle="pill" href="#menu4">Localization</a></li>
+                    <li><a data-toggle="pill" href="#menu5">Control</a></li>
                 </ul>
                 <div class="tab-content">
                     <div id="menu1" class="tab-pane fade in active">
@@ -602,6 +625,10 @@
                         </svg>
                         <div>
                         </div>
+                    </div>
+                    <div id="menu5" class="tab-pane fade in">
+                       <button type="button" class="btn btn-danger" onclick="shutdown()">Shutdown</button>
+                       <button type="button" class="btn btn-danger" onclick="reboot()">Reboot</button>
                     </div>
                 </div>
                 <div class="col-sm-2">
