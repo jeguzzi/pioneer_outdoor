@@ -11,7 +11,7 @@ import diagnostic_updater
 import diagnostic_msgs
 
 from pioneer_outdoor.msg import DockerContainer, DockerContainers
-from pioneer_outdoor.srv import DockerContainer
+from pioneer_outdoor.srv import DockerContainerCmd
 from pioneer_outdoor.srv import DockerSetRestartContainer
 
 
@@ -19,48 +19,42 @@ class PC(object):
 
     def set_restart_policy(self, name, policy, max_retry):
         return "Not implemented"
+    
+    def discover_docker_containers(self, event):
+        for c in self.cli.containers(all=True):
+            name = c['Names'][0]
+            if name not in self.containers:
+                nc = {'stats': self.cli.stats(c['Id']),
+                      'id':c['Id'],
+                      'name':name}
+                self.containers[name] = nc
 
     def init_docker_info(self):
-        containers = self.cli.containers()
-        self.containers = [{'stats': self.cli.stats(c['Id']),
-                            'id':c['Id'],
-                            'name':c['Names'][0]}
-                           for c in containers]
+        #containers = self.cli.containers(all=True)
+        #self.containers = [{'stats': self.cli.stats(c['Id']),
+        #                    'id':c['Id'],
+        #                    'name':c['Names'][0]}
+        #                   for c in containers]
         self.docker_seq = 1
-
+        self.containers = {}
+        
     def update_docker_info(self, event):
 
         msgs = DockerContainers()
         msgs.header.stamp = rospy.Time.now()
         msgs.header.seq = self.docker_seq
         self.docker_seq = self.docker_seq + 1
-        for c in self.containers:
+        for k,c in self.containers.items():
             msg = DockerContainer()
             msg.name = c['name']
             try:
-                data = json.loads(next(c['stats']))
-            except StopIteration:
-                # TODO complete
-                continue 
-            # Get start date (string, e.g. 2016-05-10T13:42:43.332441784Z) with
-            # state['StartedAt']
-            memory = data['memory_stats']
-            c['memory_usage'] = memory['usage'] / 1e6
-            c['memory_limit'] = memory['limit'] / 1e6
-            cpu = data["cpu_stats"]
-            precpu = data["precpu_stats"]
-            cpu_delta = cpu["cpu_usage"]["total_usage"] - \
-                precpu["cpu_usage"]["total_usage"]
-            system_delta = cpu["system_cpu_usage"] - precpu["system_cpu_usage"]
-            if system_delta > 0 and cpu_delta > 0:
-                c['cpu'] = cpu_delta / \
-                    float(system_delta) * len(cpu["cpu_usage"]["percpu_usage"])
-
-            msg.cpu = c['cpu']
-            msg.memory_limit = c['memory_limit']
-            msg.memory_usage = c['memory_usage']
-
-            inspect = self.cli.inspect_container(c['name'])
+                inspect = self.cli.inspect_container(c['name'])
+            except Exception:
+                msg.status = 'removed'
+                msgs.containers.append(msg)
+                del self.containers[k]
+                continue
+            
             state = inspect['State']
             c['status'] = state['Status']
             msg.status = c['status']
@@ -70,10 +64,34 @@ class PC(object):
             msg.restart_policy = restart['Name']
             msg.restart_max_retry = restart['MaximumRetryCount']
 
+            if c['status'] in  ['running','paused']:
+            
+                try:
+                    data = json.loads(next(c['stats']))
+                except StopIteration:
+                    # TODO complete
+                    continue 
+                # Get start date (string, e.g. 2016-05-10T13:42:43.332441784Z) with
+                # state['StartedAt']
+                memory = data['memory_stats']
+                c['memory_usage'] = memory['usage'] / 1e6
+                c['memory_limit'] = memory['limit'] / 1e6
+                c['cpu'] = 0
+                if c['status'] == 'running':
+                    cpu = data["cpu_stats"]
+                    precpu = data["precpu_stats"]
+                    cpu_delta = cpu["cpu_usage"]["total_usage"] - precpu["cpu_usage"]["total_usage"]
+                    system_delta = cpu["system_cpu_usage"] - precpu["system_cpu_usage"]
+                    if system_delta > 0 and cpu_delta > 0:
+                        c['cpu'] = cpu_delta / float(system_delta) * len(cpu["cpu_usage"]["percpu_usage"])
+                    
+                msg.cpu = c['cpu']
+                msg.memory_limit = c['memory_limit']
+                msg.memory_usage = c['memory_usage']
+
             msgs.containers.append(msg)
 
         self.docker_pub.publish(msgs)
-
     def docker_diagnostics(self, container):
         c_stats = self.cli.stats(container)
 
@@ -146,6 +164,18 @@ class PC(object):
     def update_diagnostics(self, event):
         self.updater.update()
 
+
+    def docker_cmd(self, cmd):
+        def handle(request):
+            try:
+                self.cli.__getattribute__(cmd)(request.name)
+                return "{cmd} {name} done!".format(cmd=cmd, name=request.name)
+            except Exception as e:
+                # TODO replace with APIError
+                return e.response.content
+            
+        return handle
+        
     def __init__(self):
 
         rospy.init_node('pc_controller', anonymous=False)
@@ -171,13 +201,14 @@ class PC(object):
             'docker/containers', DockerContainers, queue_size=1)
         self.init_docker_info()
 
+        self.discover_docker_containers(None)
+        
+        rospy.Timer(rospy.Duration(30), self.discover_docker_containers, oneshot=False)
         rospy.Timer(rospy.Duration(1), self.update_docker_info, oneshot=False)
         rospy.Timer(rospy.Duration(1), self.update_diagnostics, oneshot=False)
 
-
         for cmd in ['start','stop','pause','unpause']:
-            rospy.Service('docker/{cmd}'.format(cmd=cmd), DockerContainer,
-                          lambda request: self.cli.__getattribute__(cmd)(request.name) or "{cmd} {name} done!".format(cmd=cmd, name=request.name)
+            rospy.Service('docker/{cmd}'.format(cmd=cmd), DockerContainerCmd, self.docker_cmd(cmd))
         
         rospy.Service('docker/restart_policy', DockerSetRestartContainer,
                       lambda request: self.set_restart_policy(
