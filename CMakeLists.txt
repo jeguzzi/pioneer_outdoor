@@ -61,10 +61,7 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
-   DockerStartContainer.srv
-   DockerStopContainer.srv
-   DockerPauseContainer.srv
-   DockerUnPauseContainer.srv
+   DockerContainer.srv
    DockerSetRestartContainer.srv
  )
 

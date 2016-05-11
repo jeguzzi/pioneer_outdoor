@@ -11,8 +11,7 @@ import diagnostic_updater
 import diagnostic_msgs
 
 from pioneer_outdoor.msg import DockerContainer, DockerContainers
-from pioneer_outdoor.srv import DockerStopContainer, DockerStartContainer
-from pioneer_outdoor.srv import DockerPauseContainer, DockerUnPauseContainer
+from pioneer_outdoor.srv import DockerContainer
 from pioneer_outdoor.srv import DockerSetRestartContainer
 
 
@@ -38,8 +37,11 @@ class PC(object):
         for c in self.containers:
             msg = DockerContainer()
             msg.name = c['name']
-
-            data = json.loads(next(c['stats']))
+            try:
+                data = json.loads(next(c['stats']))
+            except StopIteration:
+                # TODO complete
+                continue 
             # Get start date (string, e.g. 2016-05-10T13:42:43.332441784Z) with
             # state['StartedAt']
             memory = data['memory_stats']
@@ -172,15 +174,11 @@ class PC(object):
         rospy.Timer(rospy.Duration(1), self.update_docker_info, oneshot=False)
         rospy.Timer(rospy.Duration(1), self.update_diagnostics, oneshot=False)
 
-        rospy.Service('docker/stop', DockerStopContainer,
-                      lambda request: self.cli.stop(request.name))
-        rospy.Service('docker/start', DockerStartContainer,
-                      lambda request: self.cli.start(request.name))
-        rospy.Service('docker/pause', DockerPauseContainer,
-                      lambda request: self.cli.pause(request.name))
-        rospy.Service('docker/unpause', DockerUnPauseContainer,
-                      lambda request: self.cli.unpause(request.name))
 
+        for cmd in ['start','stop','pause','unpause']:
+            rospy.Service('docker/{cmd}'.format(cmd=cmd), DockerContainer,
+                          lambda request: self.cli.__getattribute__(cmd)(request.name) or "{cmd} {name} done!".format(cmd=cmd, name=request.name)
+        
         rospy.Service('docker/restart_policy', DockerSetRestartContainer,
                       lambda request: self.set_restart_policy(
                           request.name, request.policy, request.max_retry))
