@@ -1,0 +1,5 @@
+<launch>
+	<group ns="$(env HOSTNAME)">
+<node pkg="gpsd_client" name="gpsd_client" type="gpsd_client" respawn="true" respawn_delay="30"/>
+</group>
+</launch>

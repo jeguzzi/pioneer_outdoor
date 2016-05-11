@@ -1,0 +1,41 @@
+<launch>
+
+    <arg name="init_hack" default="1"/>
+    <arg name="quality" default="15"/> 
+    <arg name="fps" default="15"/>
+    <group ns="$(env HOSTNAME)">
+
+    <node pkg="camera1394" type="camera1394_node" name="camera1394_node" clear_params="true">
+        <param name="video_mode" value="640x480_yuv422"/>
+        <param name="bayer_method" value="Bilinear"/>
+	<param name="frame_rate" value="$(arg fps)"/>
+	<param name="auto_white_balance" value="4"/><!-- ONE PUSH -->
+	<param name="auto_gain" value="2"/> <!-- AUTO -->
+	<param name="auto_shutter" value="2"/> <!-- AUTO -->
+    </node>
+
+    <!-- Hack to get the camera beginning to publish the topic. 
+         It's not relevant which parameter we change             -->
+    <node  pkg="dynamic_reconfigure" type="dynparam" name="camera_init" args="set /$(env HOSTNAME)/camera1394_node num_dma_buffers 5"/>
+
+    <node  pkg="dynamic_reconfigure" type="dynparam" name="compr_init" args="set /$(env HOSTNAME)/camera/image_raw/compressed jpeg_quality $(arg quality)"/> 
+
+    <!-- nodelet manager process -->
+    <!-- <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager"
+        args="manager" /> -->
+
+    <!-- camera driver nodelet -->
+    <!-- <node pkg="nodelet" type="nodelet" name="camera1394_nodelet"
+        args="load camera1394/driver camera_nodelet_manager" /> -->
+
+    <!-- Bayer color decoding -->
+    <!--  <node pkg="nodelet" type="nodelet" name="image_proc_debayer"
+        args="load image_proc/debayer camera_nodelet_manager">
+    <remap from="image_color" to="camera/image_color" />
+    <remap from="image_mono" to="camera/image_mono" />
+    <remap from="image_raw" to="camera/image_raw" />
+  </node> -->
+
+
+</group>
+</launch>

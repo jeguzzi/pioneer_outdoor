@@ -1,0 +1,17 @@
+<launch>
+
+   
+    <!-- Defining the arguments -->
+    <arg name="hokuyo" default="0"/>
+    <arg name="sick" default="0"/>
+ 
+   <group ns="$(env HOSTNAME)">
+    <!-- Hokuyo Laser -->
+    <include if="$(arg hokuyo)" file="$(find pioneer_outdoor)/launch/core/hokuyo.launch"/>
+
+    <!-- Sick Laser -->
+    <include if="$(arg sick)" file="$(find pioneer_outdoor)/launch/core/sick.launch"/>
+
+    </group>
+
+</launch>
