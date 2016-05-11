@@ -122,6 +122,7 @@
 
 
         var _alerts = {};
+        var num_alerts=[0,0,0,0]
         var _containers = {};
 
         function add_to_logs(m) {
@@ -131,17 +132,74 @@
         }
 
         function add_to_alerts(m) {
-            i = m.name.replace(/[\s//:]+/g, '');
-            level = levels[m.level]
+            var i = m.name.replace(/[\s//:]+/g, '');
+            var level = levels[m.level]
+            var p = $("#_a"+m.level)
+            var nl = m.level;
             if (!(i in _alerts)) {
-                _alerts[i] = m;
-                $("#alert").append(
-                    "<div id='{0}' data-html='true' data-placement='bottom' data-toggle='popover' data-trigger='hover'/>".format(i))
-            }
-            n = $("#" + i)
+                _alerts[i] = m.level;
+                num_alerts[nl]++;
+               //  n = $("<div id='{0}' data-html='true' data-placement='bottom' data-toggle='popover' data-trigger='hover'/>" .format(i))
+               n = $(`
+  <div id='{0}' class="panel">
+    <div class="panel-heading">
+      <h4 class="panel-title">
 
+      </h4>
+    </div>
+    <div id="t{2}" class="panel-collapse collapse">
+    </div>
+  </div>
+` .format(i,i,i))
+
+                p.append(n)
+                $("#_n"+nl).text(num_alerts[nl]);
+            }
+            else {
+               n = $("#" + i)
+               var ol =  _alerts[i];
+               if(ol!=nl)
+               {
+                  num_alerts[ol]++;
+                  num_alerts[nl]++;
+                  $("_n"+nl).text(num_alerts[nl]);
+                  $("_n"+ol).text(num_alerts[ol]);
+                  n.detach()
+                  p.append(n)
+               }
+            }
+
+            //n = $("#" + i)
+            //
+            //     n.popover();
+
+            var h = n.find('.panel-title')
+
+            var etc;
+            // if (m.values.length) {
+            //     etc = "<span class='glyphicon glyphicon-list'/>";
+            // } else {
+            //     etc = "";
+            // }
+            if (m.values.length) {
+                etc = "...";
+            } else {
+                etc = "";
+            }
+
+            var title = $("<span class='glyphicon glyphicon-{0}'></span><span><em>{1}</em>: {2} {3}</span>".format(level.glyph, m.name, m.message, etc))
+
+            var a;
             if (m.values.length)
-                n.popover();
+            {
+               a = $("<a data-toggle='collapse' href='#t"+i+"'></a>")
+               h.html(a)
+            }
+            else {
+               a=h
+            }
+            a.html(title)
+
 
             var s = "<ul class='list-group'>"
             for (var i in m.values) {
@@ -151,15 +209,14 @@
                 s += "<li class='list-group-item'>" + key + ": " + value + "</li>"
             }
             s += "</ul>"
-            n.attr("data-content", s)
-            n.attr("class", "alert alert-{0}".format(level.class));
-            var etc;
-            if (m.values.length) {
-                etc = "<span class='glyphicon glyphicon-list'/>";
-            } else {
-                etc = "";
-            }
-            n.html("<span class='glyphicon glyphicon-{0}'></span> <strong>{1}</strong> <em>{2}</em>: {3} {4}".format(level.glyph, level.name, m.name, m.message, etc))
+            n.find('.panel-collapse').html(s)
+            //n.attr("data-content", s)
+            n.attr("class", "panel panel-{0}".format(level.class));
+
+
+            // n=n.find('.panel-title').find('a')
+            //
+            // n.html("<span class='glyphicon glyphicon-{0}'></span><em>{1}</em>: {2} {3}".format(level.glyph, m.name, m.message, etc))
         }
 
         function add_to_containers(m) {
@@ -377,45 +434,77 @@
 
 
 <body>
-<div class="container-fluid">
-   <div class="row">
-     <div class="col-sm-10">
-        <ul class="nav nav-pills">
-            <li class="active"><a data-toggle="pill" href="#menu1">Diagnostics</a></li>
-            <li><a data-toggle="pill" href="#menu2">Docker</a></li>
-        </ul>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-10">
+                <ul class="nav nav-pills">
+                    <li class="active"><a data-toggle="pill" href="#menu1">Diagnostics</a></li>
+                    <li><a data-toggle="pill" href="#menu2">Docker</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="menu1" class="tab-pane fade in active">
+                            <h3>Diagnostic</h3>
+                            <div class="panel panel-danger">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                       <a data-toggle="collapse" href="#collapse1">Errors <span id="_n2" class="badge">0</span></a>
+                                   </h4>
+                                </div>
+                                <div id="collapse1" class="panel-collapse collapse">
+                                    <div class="panel-body" id="_a2">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel panel-warning">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                       <a data-toggle="collapse" href="#collapse2">Warning <span id="_n1" class="badge">0</span></a>
+                                    </h4>
+                                </div>
+                                <div id="collapse2" class="panel-collapse collapse">
+                                    <div class="panel-body" id="_a1"></div>
+                                </div>
+                            </div>
+                            <div class="panel panel-success">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                       <a data-toggle="collapse" href="#collapse3">
+                                          Ok <span id="_n0" class="badge">0</span>
+                                       </a>
+                                   </h4>
+                                </div>
+                                <div id="collapse3" class="panel-collapse collapse">
+                                    <div class="panel-body" id="_a0"></div>
+                                </div>
+                            </div>
+                        </div>
 
-        <div class="tab-content">
-            <div id="menu1" class="tab-pane fade in active">
-                <h3>Diagnostic</h3>
-                <div id="alert"></div>
-            </div>
-            <div id="menu2" class="tab-pane fade in">
-                <h3>Docker Containers</h3>
-                <div>
-                    <div class="table-responsive">
-                        <table class="table">
-                           <thead>
-                                <th>
+                    <div id="menu2" class="tab-pane fade in">
+                        <h3>Docker Containers</h3>
+                        <div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <th>
 
-                                </th>
-                                <th>
+                                        </th>
+                                        <th>
 
-                                </th>
-                                <th/>
-                                <th/>
-                                <th>
-                                    CPU
-                                </th>
-                                <th>
-                                    Memory
-                                </th>
-                                <th>
-                                    Boot
-                                </th>
-                           </thead>
-                           <tbody id="containers">
-                                <!-- <tr>
+                                        </th>
+                                        <th/>
+                                        <th/>
+                                        <th>
+                                            CPU
+                                        </th>
+                                        <th>
+                                            Memory
+                                        </th>
+                                        <th>
+                                            Boot
+                                        </th>
+                                    </thead>
+                                    <tbody id="containers">
+                                        <!-- <tr>
                                     <td style="vertical-align:middle; text-align:center" class=" success"><strong>Name</strong></td>
                                     <td>
                                         <button type="button" class="btn btn-success disabled">Start</button>
@@ -450,19 +539,20 @@
                                     </td>
                                 </tr> -->
 
-                           </tbody>
-                        </table>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-     </div>
-     <div class="col-sm-2">
-     <div id="joystick"></div>
-  </div>
-   </div>
-</div>
+        </div>
+        <div class="col-sm-2">
+            <div id="joystick"></div>
+        </div>
+    </div>
+    </div>
 
 
     <!--
@@ -535,16 +625,16 @@
     <script src="pioneer_outdoor/nipplejs.min.js" charset="utf-8"></script>
     <!-- <script src="nipplejs.min.js" charset="utf-8"></script> -->
     <script>
-      size = 60;
+        size = 60;
         var joystick = nipplejs.create({
             zone: document.getElementById('joystick'),
             mode: 'static',
             position: {
-                left: size+'px',
-                top: size+100+'px'
+                left: size + 'px',
+                top: size + 100 + 'px'
             },
             color: 'blue',
-            size: size*2
+            size: size * 2
         });
 
 
