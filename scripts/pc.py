@@ -4,6 +4,7 @@ import json
 import psutil
 import netifaces
 from docker import Client
+import os
 
 import rospy
 from std_msgs.msg import Empty
@@ -218,10 +219,12 @@ class PC(object):
 
     def has_received_reboot(self, msg):
         rospy.loginfo("Begin reboot")
+        os.system('reboot')
+        
 
     def has_received_shutdown(self, msg):
         rospy.loginfo("Begin shutdown")
-
+        os.system('shutdown now')
 if __name__ == '__main__':
     try:
         PC()

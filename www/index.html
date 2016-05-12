@@ -321,6 +321,41 @@
             });
         }
 
+
+
+        var init_pose_topic = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/initialpose',
+            messageType: 'geometry_msgs/PoseWithCovarianceStamped'
+        });
+
+        function set_init_position(x, y) {
+            var msg = new ROSLIB.Message({
+  pose:
+  {
+  position:
+  {
+  x:x,
+  y:y,
+  z:0
+  },
+  orientation:
+  {
+  x:0,
+  y:0,
+  z:0,
+  w:1
+  }
+  },
+  covariance:[9,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,36]
+  });
+            init_pose_topic.publish(msg);
+        }
+
+
+
+  
+  
         var cmdVel = new ROSLIB.Topic({
             ros: ros,
             name: '/pioneer2/des_vel',
@@ -415,6 +450,10 @@
             messageType: 'nav_msgs/Odometry'
         });
 
+	function on_map_click(evt){
+				
+
+				
         var origin = [-15.18, -10.9925, 0.0];
         var height = 421.2;
         var width = 800.0;
