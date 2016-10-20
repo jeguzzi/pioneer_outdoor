@@ -1,0 +1,24 @@
+<launch>
+
+    
+
+    <!-- Defining the arguments -->
+    <arg name="joystick" default="1"/>
+    <arg name="model" default="pioneer"/>
+
+    <group ns="$(env HOSTNAME)">
+
+    <!-- JOYSTICK -->
+    <!-- Start joy and teleoperation node for joystick control -->
+    <include if="$(arg joystick)" file="$(find pioneer_outdoor)/launch/core/joystick.launch"/>
+
+    <!-- Robot model -->
+
+    <include file="$(find pioneer_outdoor)/launch/core/urdf.launch">
+      <arg name="model" value="$(arg model)"/>
+    </include>
+
+
+    </group>
+
+</launch>

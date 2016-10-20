@@ -1,6 +1,5 @@
 <launch>
 
-
    <arg name="datum" default="[46.16388, 5.98048, 0.0, map, base_link]"/>
    <arg name="map" value="$(find pioneer_outdoor)/maps/manno/map.yaml"/>
 

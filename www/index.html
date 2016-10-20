@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Pioneer Diagnostics</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--
+     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="http://cdn.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    -->
+
+    <link rel="stylesheet" href="pioneer_outdoor/bootstrap.min.css">
+    <script src="pioneer_outdoor/jquery.min.js"></script>
+    <script src="pioneer_outdoor/bootstrap.min.js"></script>
+    <script type="text/javascript" src="pioneer_outdoor/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="pioneer_outdoor/roslib.min.js"></script>
+    <link href="pioneer_outdoor/bootstrap-switch.min.css" rel="stylesheet">
+    <script src="pioneer_outdoor/bootstrap-switch.min.js"></script>
+
+    <!-- <link rel="stylesheet" href="bootstrap.min.css">
+    <script src="jquery.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script type="text/javascript" src="eventemitter2.min.js"></script>
+    <script type="text/javascript" src="roslib.min.js"></script>
+
+
+    <link href="bootstrap-switch.min.css" rel="stylesheet">
+    <script src="bootstrap-switch.min.js"></script> -->
+
+    <script type="text/javascript" type="text/javascript">
+        // Connecting to ROS
+        // -----------------
+
+        var ros = new ROSLIB.Ros({
+            url: 'ws://192.168.1.1:9090'
+        });
+
+        ros.on('connection', function() {
+            console.log('Connected to websocket server.');
+        });
+
+        ros.on('error', function(error) {
+            console.log('Error connecting to websocket server: ', error);
+        });
+
+        ros.on('close', function() {
+            console.log('Connection to websocket server closed.');
+        });
+
+
+        function call(srv, name) {
+            console.log('call ' + srv + ' ' + name)
+            var request = new ROSLIB.ServiceRequest({
+                name: name,
+            });
+            srv.callService(request, function(result) {
+                console.log(result.response);
+            });
+        }
+
+        function stop(name) {
+            call(stop_srv, name)
+        }
+
+        function start(name) {
+            call(start_srv, name)
+        }
+
+        function pause(name) {
+            call(pause_srv, name)
+        }
+
+        function unpause(name) {
+            call(unpause_srv, name)
+        }
+
+        var levels = {}
+        levels[0] = {
+            "class": "success",
+            "name": "OK",
+            "glyph": "ok-sign"
+        }
+        levels[1] = {
+            "class": "warning",
+            "name": "WARN",
+            "glyph": "exclamation-sign"
+        }
+        levels[2] = {
+            "class": "danger",
+            "name": "ERROR",
+            "glyph": "minus-sign"
+
+        }
+        levels[3] = {
+            "class": "danger",
+            "name": "STALE",
+            "glyph": "arrow-down"
+        }
+
+        _state2class = {
+            "running": "success",
+            "exited": "danger",
+            "paused": "warning",
+            "removed": "info"
+        }
+
+
+        String.prototype.format = function() {
+            var formatted = this;
+            for (var arg in arguments) {
+                formatted = formatted.replace("{" + arg + "}", arguments[arg]);
+            }
+            return formatted;
+        };
+
+
+        var _alerts = {};
+        var num_alerts = [0, 0, 0, 0]
+        var _containers = {};
+
+        function add_to_logs(m) {
+            level = levels[m.level]
+            $("#log").append(
+                "<tr class='{0}'><td>{1}</td><td>{2}</td><td>{3}</td></tr>".format(level.class, ds, m.name, m.message));
+        }
+
+        function add_to_alerts(m) {
+            var i = m.name.replace(/[\s//:]+/g, '');
+            var level = levels[m.level]
+            var p = $("#_a" + m.level)
+            var nl = m.level;
+            if (!(i in _alerts)) {
+                _alerts[i] = m.level;
+                num_alerts[nl]++;
+                //  n = $("<div id='{0}' data-html='true' data-placement='bottom' data-toggle='popover' data-trigger='hover'/>" .format(i))
+                n = $(`
+  <div id='{0}' class="panel">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+
+      </h4>
+    </div>
+    <div id="t{2}" class="panel-collapse collapse">
+    </div>
+  </div>
+`.format(i, i, i))
+
+                p.append(n)
+                $("#_n" + nl).text(num_alerts[nl]);
+            } else {
+                n = $("#" + i)
+                var ol = _alerts[i];
+                if (ol != nl) {
+                    num_alerts[ol]--;
+                    num_alerts[nl]++;
+                    $("_n" + nl).text(num_alerts[nl]);
+                    $("_n" + ol).text(num_alerts[ol]);
+                    n.detach()
+                    p.append(n)
+                }
+            }
+
+            //n = $("#" + i)
+            //
+            //     n.popover();
+
+            var h = n.find('.panel-title')
+
+            var etc;
+            // if (m.values.length) {
+            //     etc = "<span class='glyphicon glyphicon-list'/>";
+            // } else {
+            //     etc = "";
+            // }
+            if (m.values.length) {
+                etc = "...";
+            } else {
+                etc = "";
+            }
+
+            var title = $("<span class='glyphicon glyphicon-{0}'></span><span><em>{1}</em>: {2} {3}</span>".format(level.glyph, m.name, m.message, etc))
+
+            var a;
+            if (m.values.length) {
+                a = $("<a data-toggle='collapse' href='#t" + i + "'></a>")
+                h.html(a)
+            } else {
+                a = h
+            }
+            a.html(title)
+
+
+            var s = "<ul class='list-group'>"
+            for (var i in m.values) {
+                item = m.values[i];
+                value = item.value;
+                key = item.key;
+                s += "<li class='list-group-item'>" + key + ": " + value + "</li>"
+            }
+            s += "</ul>"
+            n.find('.panel-collapse').html(s)
+                //n.attr("data-content", s)
+            n.attr("class", "panel panel-{0}".format(level.class));
+
+
+            // n=n.find('.panel-title').find('a')
+            //
+            // n.html("<span class='glyphicon glyphicon-{0}'></span><em>{1}</em>: {2} {3}".format(level.glyph, m.name, m.message, etc))
+        }
+
+        function add_to_containers(m) {
+            i = m.name.replace(/[\s//:]+/g, '');
+            level = levels[m.level]
+            if (!(i in _containers)) {
+                _containers[i] = m;
+                $("#containers").append(
+                    `<tr id='_C{0}'>
+                   <td style="vertical-align:middle; text-align:center"><strong>{1}</strong></td>
+                   <td>
+                   <button type="button" class="btn btn-success" onclick="start('{2}')">Start</button>
+                   </td>
+                   <td>
+                   <button type="button" class="btn btn-warning" onclick="pause('{3}')">Pause</button>
+                   </td>
+                   <td>
+                   <button type="button" class="btn btn-danger" onclick="stop('{4}')">Stop</button>
+                   </td>
+                   <td>
+                   </td>
+                   <td>
+                   </td>
+                   <td>
+                     <input type="checkbox" name="my-checkbox" disabled>
+                   </td>
+                   </tr>
+                   `
+                    .format(i, i, i, i, i))
+            }
+            //console.log(m.name+ " "+m.cpu)
+            n = $("#_C" + i)
+            cc = n.children()
+            c1 = $(cc[0])
+            c1.attr("class", _state2class[m.status])
+            bs = [1, 2, 3].map(function(j) {
+                return $(cc[j]).find('button');
+            });
+            switch (m.status) {
+                case 'running':
+                    //$(bs[0]).prop('disabled', true)
+                    $(bs[0]).hide()
+                        //$(bs[1]).prop('disabled', false)
+                    $(bs[1]).text('Pause')
+                    $(bs[1]).attr("onclick", "pause('{0}')".format(i))
+                    $(bs[1]).show()
+                    $(bs[2]).show()
+                        //$(bs[2]).prop('disabled', false)
+                    break;
+                case 'paused':
+                    //$(bs[0]).prop('disabled', true)
+                    $(bs[0]).hide()
+                        //$(bs[1]).prop('disabled', false)
+                    $(bs[1]).text('Unpause')
+                    $(bs[1]).attr("onclick", "unpause('{0}')".format(i))
+                    $(bs[1]).show()
+                    $(bs[2]).hide()
+                        //$(bs[2]).prop('disabled', true)
+                    break;
+                case 'exited':
+                    //$(bs[0]).prop('disabled', false)
+                    $(bs[0]).show()
+                        //$(bs[1]).prop('disabled', true)
+                    $(bs[1]).hide()
+                        //$(bs[2]).prop('disabled', true)
+                    $(bs[2]).hide()
+                    break;
+                default:
+            }
+
+            //...
+            c3 = $(cc[4])
+            c3.text('{0}%'.format((100 * m.cpu).toFixed(1)))
+            c4 = $(cc[5])
+            if (m.memory_limit > 0) {
+                mem_p = (100 * m.memory_usage / m.memory_limit).toFixed(1)
+            } else {
+                mem_p = 0
+            }
+            c4.text('{0} MB ({1}%)'.format((m.memory_usage).toFixed(0), mem_p))
+            c5 = $(cc[6])
+            s = c5.find('input')
+            if (m.restart_policy == 'always') {
+                s.prop('checked', true);
+            } else {
+                s.prop('checked', false);
+            }
+            s.bootstrapSwitch();
+            //Stil need to implement on the server
+            s.on('switchChange.bootstrapSwitch', function(event, state) {
+                set_restart(i, state)
+            });
+        }
+
+
+        function set_restart(i, state) {
+            var policy = state ? 'always' : 'no'
+            console.log('set restart ' + i + ' to ' + policy)
+            var request = new ROSLIB.ServiceRequest({
+                name: name,
+                policy: policy,
+                max_retry: 0
+            });
+            restart_policy_srv.callService(request, function(result) {
+                console.log(result.response);
+            });
+        }
+
+
+
+        var init_pose_topic = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/initialpose',
+            messageType: 'geometry_msgs/PoseWithCovarianceStamped'
+        });
+        var seq=0;
+        function set_init_position(x, y) {
+           seq=0
+            var msg = new ROSLIB.Message({
+               header:
+               {
+                  seq:seq++,
+                  stamp : {secs : 0, nsecs : 0},
+                  frame_id: 'map',
+               },
+                pose:{
+                  pose:{
+                    position: {
+                        x: x,
+                        y: y,
+                        z: 0
+                    },
+                    orientation: {
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                        w: 1
+                    }
+                },
+                covariance: [9, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36]
+             }
+            });
+            console.log(msg)
+            var r = init_pose_topic.publish(msg);
+            console.log(r)
+        }
+
+
+        var cmdVel = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/des_vel',
+            messageType: 'geometry_msgs/Twist'
+        });
+
+        function set_velocity(lin, ang) {
+            var twist = new ROSLIB.Message({
+                linear: {
+                    x: lin,
+                    y: 0.0,
+                    z: 0.0
+                },
+                angular: {
+                    x: 0.0,
+                    y: 0.0,
+                    z: ang
+                }
+            });
+            cmdVel.publish(twist);
+        }
+
+        var shutdownT = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/shutdown',
+            messageType: 'std_msgs/Empty'
+        });
+
+        var rebootT = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/reboot',
+            messageType: 'std_msgs/Empty'
+        });
+
+        var empty = new ROSLIB.Message({})
+
+        function shutdown() {
+            shutdownT.publish(empty);
+        }
+
+        function reboot() {
+            rebootT.publish(empty);
+        }
+
+
+        //
+        // Subscribing to a Topic
+        // ----------------------
+
+        var listener = new ROSLIB.Topic({
+            ros: ros,
+            name: '/diagnostics',
+            messageType: 'diagnostic_msgs/DiagnosticArray'
+        });
+        listener.subscribe(function(ms) {
+            stamp = ms.header.stamp
+            date = new Date(stamp.secs * 1000 + stamp.nsecs / 1000000)
+            ds = date.toLocaleTimeString("en-CH")
+            for (var i = 0; i < ms.status.length; i++) {
+                m = ms.status[i];
+                //add_to_logs(m);
+                add_to_alerts(m);
+
+                //$("#"+i).remove()
+                //console.log("#"+i)
+                //console.log($("#"+i))
+                //_alerts[m.name] = m;
+                // $("#alert").append(
+                //    "<div id='{0}' class='alert alert-{1}'><span class='glyphicons glyphicon-{2}'></span><strong>{3}</strong> {4}</div>".format(i,level.class,level.glyph,level.name,m.name,m.message))
+
+            }
+        });
+
+        var d_listener = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/docker/containers',
+            messageType: 'pioneer_outdoor/DockerContainers'
+        });
+        d_listener.subscribe(function(ms) {
+            //console.log(ms);
+            var stamp = ms.header.stamp
+            var date = new Date(stamp.secs * 1000 + stamp.nsecs / 1000000)
+            var ds = date.toLocaleTimeString("en-CH")
+            for (var i = 0; i < ms.containers.length; i++) {
+                var m = ms.containers[i];
+                add_to_containers(m);
+            }
+        });
+
+        var p_listener = new ROSLIB.Topic({
+            ros: ros,
+            name: '/pioneer2/odometry/filtered',
+            messageType: 'nav_msgs/Odometry'
+        });
+
+        var origin = [-15.18, -10.9925, 0.0];
+        var height = 421.2;
+        var width = 800.0;
+        var m_height = 79.90;
+        var m_width = 151.75;
+        var r = width / m_width;
+        var margin = width * m_height / m_width / 2;
+
+        function on_map_click(evt) {
+
+            var e = evt.target;
+            var dim = e.getBoundingClientRect();
+            var x = evt.clientX - dim.left;
+            var y = evt.clientY - dim.top;
+
+            console.log(x + "," + y)
+            y = height - y;
+            x = x / r;
+            y = y / r;
+            x = x + origin[0];
+            y = y + origin[1];
+            console.log("->" + x + "," + y)
+            set_init_position(x, y)
+        }
+
+
+
+
+        p_listener.subscribe(function(m) {
+            var pose = m.pose.pose;
+            var position = pose.position;
+            var orientation = pose.orientation;
+
+            var yaw = Math.asin(orientation.z) * 2
+            var x = position.x;
+            var y = position.y;
+            //console.log(x+","+y+","+yaw)
+            //console.log(x + "," + y + "," + yaw)
+            x = x - origin[0];
+            y = y - origin[1];
+            yaw = yaw - origin[2];
+
+            x = x * r;
+            y = y * r;
+
+            y = height - y;
+
+            $("#robot").attr('transform', 'translate({0},{1}) rotate({2})'.format(x, y, -180 / Math.PI * yaw))
+
+            //console.log("->"+x+","+y+","+yaw)
+
+        });
+
+
+
+        //listener.unsubscribe();
+        //   {message: "OK", hardware_id: "none", values: Array, name: "pioneer2/pioneer_joy_controller: Joystick Driver Status", level: 0}
+
+        // listener.unsubscribe();
+        // m=message
+
+        stop_srv = new ROSLIB.Service({
+            ros: ros,
+            name: 'pioneer2/docker/stop',
+            serviceType: 'pioneer_outdoor/DockerContainerCmd'
+        });
+
+        start_srv = new ROSLIB.Service({
+            ros: ros,
+            name: 'pioneer2/docker/start',
+            serviceType: 'pioneer_outdoor/DockerContainerCmd'
+        });
+
+        pause_srv = new ROSLIB.Service({
+            ros: ros,
+            name: 'pioneer2/docker/pause',
+            serviceType: 'pioneer_outdoor/DockerContainerCmd'
+        });
+
+        unpause_srv = new ROSLIB.Service({
+            ros: ros,
+            name: 'pioneer2/docker/unpause',
+            serviceType: 'pioneer_outdoor/DockerContainerCmd'
+        });
+        restart_policy_srv = new ROSLIB.Service({
+            ros: ros,
+            name: 'pioneer2/docker/restart_policy',
+            serviceType: 'pioneer_outdoor/DockerSetRestartContainer'
+        });
+    </script>
+
+
+
+</head>
+
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-10">
+                <ul class="nav nav-pills">
+                    <li class="active"><a data-toggle="pill" href="#menu1">Diagnostics</a></li>
+                    <li><a data-toggle="pill" href="#menu2">Docker</a></li>
+                    <li><a data-toggle="pill" href="#menu3">Camera</a></li>
+                    <li><a data-toggle="pill" href="#menu4">Localization</a></li>
+                    <li><a data-toggle="pill" href="#menu5">Control</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="menu1" class="tab-pane fade in active">
+                        <h3>Diagnostic</h3>
+                        <div class="panel panel-danger">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                       <a data-toggle="collapse" href="#collapse1">Errors <span id="_n2" class="badge">0</span></a>
+                                   </h4>
+                            </div>
+                            <div id="collapse1" class="panel-collapse collapse">
+                                <div class="panel-body" id="_a2">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-warning">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                       <a data-toggle="collapse" href="#collapse2">Warning <span id="_n1" class="badge">0</span></a>
+                                    </h4>
+                            </div>
+                            <div id="collapse2" class="panel-collapse collapse">
+                                <div class="panel-body" id="_a1"></div>
+                            </div>
+                        </div>
+                        <div class="panel panel-success">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                       <a data-toggle="collapse" href="#collapse3">
+                                          Ok <span id="_n0" class="badge">0</span>
+                                       </a>
+                                   </h4>
+                            </div>
+                            <div id="collapse3" class="panel-collapse collapse">
+                                <div class="panel-body" id="_a0"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="menu2" class="tab-pane fade in">
+                        <h3>Docker Containers</h3>
+                        <div>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <th>
+
+                                        </th>
+                                        <th>
+
+                                        </th>
+                                        <th/>
+                                        <th/>
+                                        <th>
+                                            CPU
+                                        </th>
+                                        <th>
+                                            Memory
+                                        </th>
+                                        <th>
+                                            Boot
+                                        </th>
+                                    </thead>
+                                    <tbody id="containers">
+                                        <!-- <tr>
+                                    <td style="vertical-align:middle; text-align:center" class=" success"><strong>Name</strong></td>
+                                    <td>
+                                        <button type="button" class="btn btn-success disabled">Start</button>
+                                        <button type="button" class="btn btn-warning">Pause</button>
+                                        <button type="button" class="btn btn-danger">Stop</button>
+                                    </td>
+                                    <td>
+                                        8%
+                                    </td>
+                                    <td>
+                                        64 MB (10%)
+                                    </td>
+                                    <td>
+                                        <input type="checkbox" name="my-checkbox" checked>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align:middle; text-align:center" class="danger"><strong>Name 2</strong></td>
+                                    <td>
+                                        <button type="button" class="btn btn-success">Start</button>
+                                        <button type="button" class="btn btn-warning">Pause</button>
+                                        <button type="button" class="btn btn-danger disabled">Stop</button>
+                                    </td>
+                                    <td>
+                                        13%
+                                    </td>
+                                    <td>
+                                        14 MB (3%)
+                                    </td>
+                                    <td>
+                                        <input type="checkbox" name="my-checkbox" checked>
+                                    </td>
+                                </tr> -->
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="menu3" class="tab-pane fade in">
+                        <h3>mjpeg stream of /pioneer2/camera/image_raw</h3>
+                        <img src="http://192.168.1.1:8080/stream?topic=/pioneer2/camera/image_raw&quality=50" />
+                    </div>
+                    <div id="menu4" class="tab-pane fade in">
+                        <h3>Localization</h3>
+                        <svg width="800px" height="421.2px" onclick="on_map_click(event)">
+                            <!--rect width="100%" height="100%" fill="blue" /-->
+                            <image width="100%" height="100%" xlink:href="pioneer_outdoor/map.png" />
+                            <g id="robot" fill-opacity="0.8">
+
+                                <circle r="4" fill="red" />
+                                <rect width="6" height="1" x="-3" y="-3" fill="darkred" fill-opacity="0.8" />
+                                <rect width="6" height="1" x="-3" y="3" fill="darkred" fill-opacity="0.8" />
+
+                                <circle r="2" cx="2" fill="snow" />
+                            </g>
+                        </svg>
+                        <div>
+                        </div>
+                    </div>
+                    <div id="menu5" class="tab-pane fade in">
+                        <button type="button" class="btn btn-danger" onclick="shutdown()">Shutdown</button>
+                        <button type="button" class="btn btn-danger" onclick="reboot()">Reboot</button>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div id="joystick"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!--
+<script src="pioneer_outdoor/nipplejs.min.js"></script>
+
+<script>
+    var static = nipplejs.create({
+        zone: document.getElementById('static'),
+        mode: 'static',
+        position: {left: '50%', top: '50%'},
+        color: 'red'
+    });
+</script>
+-->
+
+
+
+
+
+
+
+
+
+
+        <!--div id="alert" class="container"-->
+
+
+        <!-- <div class="alert alert-success">
+        <strong>Success!</strong> Indicates a successful or positive action.
+    </div>
+
+    <div class="alert alert-info">
+        <strong>Info!</strong> Indicates a neutral informative change or action.
+    </div>
+
+    <div class="alert alert-warning">
+        <strong>Warning!</strong> Indicates a warning that might need attention.
+    </div>
+
+    <div class="alert alert-danger">
+        <strong>Danger!</strong> Indicates a dangerous or potentially negative action.
+    </div> -->
+
+        <!--/div-->
+        <!--
+<div class="container">
+   <h2>Log</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody id="log">
+            </tbody>
+        </table>
+    </div>
+</div>
+-->
+        <script>
+            $(document).ready(function() {
+                $('[data-toggle="popover"]').popover();
+            });
+        </script>
+
+
+        <script src="pioneer_outdoor/nipplejs.min.js" charset="utf-8"></script>
+        <!-- <script src="nipplejs.min.js" charset="utf-8"></script> -->
+        <script>
+            size = 60;
+            var joystick = nipplejs.create({
+                zone: document.getElementById('joystick'),
+                mode: 'static',
+                position: {
+                    left: size + 'px',
+                    top: size + 100 + 'px'
+                },
+                color: 'blue',
+                size: size * 2
+            });
+
+
+
+            down = false;
+            lin_speed = 0;
+            ang_speed = 0;
+            max_lin_speed = 0.7;
+            max_ang_speed = 1;
+
+
+            joystick.on('start', function(evt, data) {
+                down = true;
+            });
+
+            joystick.on('end', function(evt, data) {
+                down = false;
+            });
+
+            joystick.on('move', function(evt, data) {
+                lin_speed = Math.sin(data.angle.radian) * data.distance * max_lin_speed / size;
+                ang_speed = -Math.cos(data.angle.radian) * data.distance * max_ang_speed / size;
+            });
+
+            setInterval(function() {
+                if (down) {
+                    set_velocity(lin_speed, ang_speed);
+                } else {
+                    set_velocity(0, 0);
+                }
+
+            }, 100);
+
+
+
+            $("[type='checkbox']").bootstrapSwitch();
+        </script>
+
+</body>
+
+
+</html>

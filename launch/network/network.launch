@@ -4,11 +4,13 @@
     <arg name="nimbro" default="0"/>
     <arg name="remote_base" default="$(optenv remote_addr 10.42.43.1)"/>
     <arg name="remote_port" default="$(optenv remote_port 9999)"/>
-    <group ns="$(env HOSTNAME)">
+    <arg name="numbro_send" default="false"/>
+<group ns="$(env HOSTNAME)">
     	   <include if="$(arg multimaster)" file="$(find pioneer_outdoor)/launch/network/mm.launch"/>
 	   <include if="$(arg nimbro)" file="$(find pioneer_outdoor)/launch/network/nimbro.launch">
 	   	    <arg name="target" value="$(arg remote_base)"/>
 		    <arg name="port" value="$(arg remote_port)"/>
+		    <arg name="send" value="$(arg nimbro_send)"/>
 	   </include>
     </group>
 </launch>

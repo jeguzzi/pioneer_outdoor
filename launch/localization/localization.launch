@@ -156,7 +156,8 @@
         <rosparam param="imu0_config" subst_value="true">
             [false, false, false, false, false, $(arg compass_odom), false, false, false, false, false, true, false, false, false]
         </rosparam>
-        <param name="imu0_differential" value="true"/>
+        <param name="imu0_differential" value="true" unless="$(arg compass_odom)"/>
+	<param name="imu0_differential" value="false" if="$(arg compass_odom)"/>
 
         <remap from="odometry/filtered" to="odometry/odom"/>
     </node>
