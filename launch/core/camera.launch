@@ -1,7 +1,8 @@
 <launch>
 
     <arg name="init_hack" default="1"/>
-
+    <arg name="quality" default="15"/>
+    
     <node pkg="camera1394" type="camera1394_node" name="camera1394_node">
         <param name="video_mode" value="640x480_yuv422"/>
         <param name="bayer_method" value="Bilinear"/>
@@ -14,6 +15,7 @@
     <!-- Hack to get the camera beginning to publish the topic. 
          It's not relevant which parameter we change             -->
     <node  pkg="dynamic_reconfigure" type="dynparam" name="camera_init" args="set /$(env HOSTNAME)/camera1394_node num_dma_buffers 5"/>
+    <node  pkg="dynamic_reconfigure" type="dynparam" name="compr_init" args="set /$(env HOSTNAME)/camera/image_raw/compressed jpeg_quality $(arg quality)"/>
 
 
     <!-- nodelet manager process -->

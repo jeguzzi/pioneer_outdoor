@@ -31,7 +31,7 @@ class LcmBridge(object):
         msg.longitude =  lon
         msg.latitude = lat
         msg.altitude = alt
-        rospy.loginfo("Sending lcm message %s" % msg)
+        #print "Sending lcm message", msg
         self.lc.publish(channel, msg.encode())
 
     def has_received_lcm(self, channel, data):
@@ -45,11 +45,11 @@ class LcmBridge(object):
         alt = msg.altitude
         self.publish_lcm_fix(lat, lon, alt)
 
-    def publish_waypoint(lat, lon, waypoint_pub):
+    def publish_waypoint(self, lat, lon, waypoint_pub):
         msg = NavSatFix()
         msg.header.stamp = rospy.Time.now()
         msg.latitude = lat
-        mag.longitude = lon
+        msg.longitude = lon
         self.waypoint.pub(msg)
 
     def run(self):

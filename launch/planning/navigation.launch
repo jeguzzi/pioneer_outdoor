@@ -1,6 +1,6 @@
 <launch>
 
-    <arg name="use_amcl_map" default="1"/>
+    <arg name="use_amcl_map" default="0"/>
     <arg name="map"/>
     <arg name="map_frame" default="map"/>
     <arg name="sick" default="$(optenv use_sick 0)"/>
@@ -93,12 +93,10 @@
 
 <remap from="controller/odometry" to="odometry/filtered"/>
 
-<!--
+
 <node pkg="pioneer_outdoor" name="controller" type="controller.py">
-      <param name="utm_proj" value="epsg:3263"/>
-      
+      <param name="utm_proj" value="epsg:32631"/>
 </node>
--->
 
 </group>
 
