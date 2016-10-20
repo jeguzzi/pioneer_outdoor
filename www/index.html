@@ -299,9 +299,9 @@
             }
             //s.bootstrapSwitch('disabled',true);
             //Stil need to implement on the server
-            // s.on('switchChange.bootstrapSwitch', function(event, state) {
-            //     set_restart(i, state)
-            // });
+            s.on('switchChange.bootstrapSwitch', function(event, state) {
+                set_restart(i, state)
+            });
         }
 
 
