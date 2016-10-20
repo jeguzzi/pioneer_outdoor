@@ -8,6 +8,11 @@
 
     <!-- Cost map -->
 
+    <arg unless="$(arg sick)" name="use_laser" default="false"/>
+    <arg if="$(arg sick)" name="use_laser" default="true"/>
+    <arg unless="$(arg sick)" name="obstacle_range" default="15.0"/>
+    <arg unless="$(arg sick)" name="raytrace_range" default="20.0"/>
+
     <arg if="$(arg sick)" name="obstacle_range" default="15.0"/>
     <arg if="$(arg sick)" name="raytrace_range" default="20.0"/>
     <arg if="$(arg hokuyo)" name="obstacle_range" default="4.0"/>
@@ -24,7 +29,7 @@
 
     <group ns="$(env HOSTNAME)">
 
-
+    <remap from="odom" to="odometry/odom"/>
     <node unless="$(arg use_amcl_map)" name="navigation_map_server" pkg="map_server" type="map_server" args="$(arg map)">
         <param name="frame_id" value="$(arg map_frame)"/>
     </node>
@@ -35,22 +40,27 @@
         <rosparam file="$(find p2os_launch)/launch/costmap_common_params_p3at.yaml" command="load" ns="global_costmap"/>
         <!-- <rosparam file="$(find p2os_launch)/launch/global_costmap_params.yaml" command="load"/> -->
 
-        <rosparam ns="global_costmap" subst_value="true">
-            global_frame: $(arg global_frame)
-            robot_base_frame: base_link
-            update_frequency: 2.0
-            publish_frequency: 0.0
-            static_map: $(arg global_static_map)
-            resolution: 0.1
-            obstacle_range: $(arg obstacle_range)
-            raytrace_range: $(arg raytrace_range)
-            inflation_radius: $(arg inflation_radius)
-        </rosparam>
+        <rosparam if="$(arg global_static_map)" ns="global_costmap" subst_value="true">
+global_frame: $(arg global_frame)
+robot_base_frame: base_link
+update_frequency: 2.0
+publish_frequency: 0.0
+static_map: $(arg global_static_map)
+resolution: 0.1
+obstacle_range: $(arg obstacle_range)
+raytrace_range: $(arg raytrace_range)
+inflation_radius: $(arg inflation_radius)
+</rosparam>
         <rosparam unless="$(arg global_static_map)" ns="global_costmap">
-            rolling_window: true
-            width: 200.0
-            height: 200.0
-        </rosparam>
+rolling_window: true
+width: 200.0
+height: 200.0
+</rosparam>
+
+
+	<param unless="$(arg use_laser)" name="global_costmap/obstacle_layer/observation_sources" value=""/>
+	<param unless="$(arg use_laser)" name="local_costmap/obstacle_layer/observation_sources" value=""/>
+
 
         <rosparam file="$(find p2os_launch)/launch/global_planner_params.yaml" command="load"/>
 	<!--<param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>-->
@@ -86,7 +96,7 @@
         <param name="conservative_reset_dist" type="double" value="3.0"/>
         <param name="controller_frequency" type="double" value="10.0"/>
         <remap from="cmd_vel" to="des_vel"/>
-
+	
     </node>
 
 <!-- Main Control -->

@@ -1,10 +1,12 @@
 <launch>
 
+<arg name="compass" default="false"/>
+
    <include file="$(find pioneer_outdoor)/launch/localization/localization.launch">
      <arg name="gps" value="0"/>
      <arg name="filter_map" default="0"/>
      <arg name="amcl" default="0"/>
-     <arg name="compass" value="false"/>
+     <arg name="compass_odom" value="$(arg compass)"/>
 </include>
 
 </launch>
