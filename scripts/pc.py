@@ -26,6 +26,7 @@ class PC(object):
         }
         rospy.loginfo("Try to set restart_policy of {name} to {restart_policy}.".format(
             name=name, restart_policy=restart_policy))
+        rospy.loginfo(self.containers.get('/ui', ''))
         if '/ui' in self.containers:
             if self.containers['/ui'].get('restart_policy', {}) == restart_policy:
                 rospy.loginfo("Same restart_policy")
