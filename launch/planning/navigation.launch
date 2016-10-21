@@ -34,7 +34,7 @@
         <param name="frame_id" value="$(arg map_frame)"/>
     </node>
 
-    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="log">
 
         <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
         <rosparam file="$(find p2os_launch)/launch/costmap_common_params_p3at.yaml" command="load" ns="global_costmap"/>

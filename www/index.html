@@ -35,10 +35,12 @@
         // Connecting to ROS
         // -----------------
 
-        hostname = 'pioneer';
+        ns = 'pioneer1';
+        hostname = window.location.hostname;
+        hostname = '192.168.201.50'
 
         var ros = new ROSLIB.Ros({
-            url: 'ws://' + window.location.hostname + ':9090'
+            url: 'ws://' + hostname + ':9090'
         });
 
         ros.on('connection', function() {
@@ -214,6 +216,36 @@
             // n.html("<span class='glyphicon glyphicon-{0}'></span><em>{1}</em>: {2} {3}".format(level.glyph, m.name, m.message, etc))
         }
 
+        function add_log(date, level, name, msg)
+        {
+           console.log(date+level+name+msg);
+           cls = {
+            'INFO':'info',
+            'DEBUG':'info',
+            'WARN':'warning',
+            'ERROR': 'danger',
+            'FATAL':'danger'}[level]
+           $("#logs").append(
+             `
+             <tr class={4}>
+             <td>
+             {0}
+             </td>
+             <td>
+             {1}
+             </td>
+             <td>
+             {2}
+             </td>
+             <td>
+             {3}
+             </td>
+             </tr>
+             `
+             .format(date, level, name, msg,cls)
+          )
+        }
+
         function add_to_containers(m) {
             var i = m.name.replace(/[\s//:]+/g, '');
             var level = levels[m.level]
@@ -324,7 +356,7 @@
 
         var init_pose_topic = new ROSLIB.Topic({
             ros: ros,
-            name: '/'+hostname+'/initialpose',
+            name: '/'+ns+'/initialpose',
             messageType: 'geometry_msgs/PoseWithCovarianceStamped'
         });
         var seq=0;
@@ -362,7 +394,7 @@
 
         var cmdVel = new ROSLIB.Topic({
             ros: ros,
-            name: '/'+hostname+'/des_vel',
+            name: '/'+ns+'/des_vel',
             messageType: 'geometry_msgs/Twist'
         });
 
@@ -384,13 +416,13 @@
 
         var shutdownT = new ROSLIB.Topic({
             ros: ros,
-            name: '/'+hostname+'/shutdown',
+            name: '/'+ns+'/shutdown',
             messageType: 'std_msgs/Empty'
         });
 
         var rebootT = new ROSLIB.Topic({
             ros: ros,
-            name: '/'+hostname+'/reboot',
+            name: '/'+ns+'/reboot',
             messageType: 'std_msgs/Empty'
         });
 
@@ -433,9 +465,25 @@
             }
         });
 
+        var listener = new ROSLIB.Topic({
+            ros: ros,
+            name: '/rosout_agg',
+            messageType: 'rosgraph_msgs/Log'
+        });
+        listener.subscribe(function(ms) {
+            var stamp = ms.header.stamp
+            var date = new Date(stamp.secs * 1000 + stamp.nsecs / 1000000)
+            var ds = date.toLocaleTimeString("en-CH")
+            var level = {1:'DEBUG', 2:'INFO', 4:'WARN', 8:'ERROR', 16:'FATAL'}[ms.level]
+            var name = ms.name
+            var msg = ms.msg
+            add_log(ds, level, name, msg)
+        });
+
+
         var d_listener = new ROSLIB.Topic({
             ros: ros,
-            name: '/'+hostname+'/docker/containers',
+            name: '/'+ns+'/docker/containers',
             messageType: 'pioneer_outdoor/DockerContainers'
         });
         d_listener.subscribe(function(ms) {
@@ -451,7 +499,7 @@
 
         var p_listener = new ROSLIB.Topic({
             ros: ros,
-            name: '/'+hostname+'/odometry/filtered',
+            name: '/'+ns+'/odometry/filtered',
             messageType: 'nav_msgs/Odometry'
         });
 
@@ -518,30 +566,30 @@
 
         stop_srv = new ROSLIB.Service({
             ros: ros,
-            name: hostname+'/docker/stop',
+            name: ns+'/docker/stop',
             serviceType: 'pioneer_outdoor/DockerContainerCmd'
         });
 
         start_srv = new ROSLIB.Service({
             ros: ros,
-            name: hostname+'/docker/start',
+            name: ns+'/docker/start',
             serviceType: 'pioneer_outdoor/DockerContainerCmd'
         });
 
         pause_srv = new ROSLIB.Service({
             ros: ros,
-            name: hostname+'/docker/pause',
+            name: ns+'/docker/pause',
             serviceType: 'pioneer_outdoor/DockerContainerCmd'
         });
 
         unpause_srv = new ROSLIB.Service({
             ros: ros,
-            name: hostname+'/docker/unpause',
+            name: ns+'/docker/unpause',
             serviceType: 'pioneer_outdoor/DockerContainerCmd'
         });
         restart_policy_srv = new ROSLIB.Service({
             ros: ros,
-            name: hostname+'/docker/restart_policy',
+            name: ns+'/docker/restart_policy',
             serviceType: 'pioneer_outdoor/DockerSetRestartContainer'
         });
     </script>
@@ -557,6 +605,7 @@
             <div class="col-sm-10">
                 <ul class="nav nav-pills">
                     <li class="active"><a data-toggle="pill" href="#menu1">Diagnostics</a></li>
+                    <li><a data-toggle="pill" href="#menu1b">Console</a></li>
                     <li><a data-toggle="pill" href="#menu2">Docker</a></li>
                     <li><a data-toggle="pill" href="#menu3">Camera</a></li>
                     <li><a data-toggle="pill" href="#menu4">Localization</a></li>
@@ -599,76 +648,100 @@
                             </div>
                         </div>
                     </div>
-
-                    <div id="menu2" class="tab-pane fade in">
-                        <h3>Docker Containers</h3>
+                    <div id="menu1b" class="tab-pane fade in">
+                        <h3>Console</h3>
                         <div>
                             <div class="table-responsive">
                                 <table class="table">
                                     <thead>
                                         <th>
-
+                                        Time
                                         </th>
                                         <th>
-
+                                        Level
+                                        </th>
+                                        <th>
+                                        Node
                                         </th>
                                         <th/>
+                                        Message
                                         <th/>
-                                        <th>
-                                            CPU
-                                        </th>
-                                        <th>
-                                            Memory
-                                        </th>
-                                        <th>
-                                            Boot
-                                        </th>
                                     </thead>
-                                    <tbody id="containers">
-                                        <!-- <tr>
-                                    <td style="vertical-align:middle; text-align:center" class=" success"><strong>Name</strong></td>
-                                    <td>
-                                        <button type="button" class="btn btn-success disabled">Start</button>
-                                        <button type="button" class="btn btn-warning">Pause</button>
-                                        <button type="button" class="btn btn-danger">Stop</button>
-                                    </td>
-                                    <td>
-                                        8%
-                                    </td>
-                                    <td>
-                                        64 MB (10%)
-                                    </td>
-                                    <td>
-                                        <input type="checkbox" name="my-checkbox" checked>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="vertical-align:middle; text-align:center" class="danger"><strong>Name 2</strong></td>
-                                    <td>
-                                        <button type="button" class="btn btn-success">Start</button>
-                                        <button type="button" class="btn btn-warning">Pause</button>
-                                        <button type="button" class="btn btn-danger disabled">Stop</button>
-                                    </td>
-                                    <td>
-                                        13%
-                                    </td>
-                                    <td>
-                                        14 MB (3%)
-                                    </td>
-                                    <td>
-                                        <input type="checkbox" name="my-checkbox" checked>
-                                    </td>
-                                </tr> -->
+                                    <tbody id="logs">
 
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
+                    <div id="menu2" class="tab-pane fade in">
+                       <h3>Docker Containers</h3>
+                       <div>
+                           <div class="table-responsive">
+                               <table class="table">
+                                   <thead>
+                                       <th>
 
+                                       </th>
+                                       <th>
+
+                                       </th>
+                                       <th/>
+                                       <th/>
+                                       <th>
+                                           CPU
+                                       </th>
+                                       <th>
+                                           Memory
+                                       </th>
+                                       <th>
+                                           Boot
+                                       </th>
+                                   </thead>
+                                   <tbody id="containers">
+                                       <!-- <tr>
+                                   <td style="vertical-align:middle; text-align:center" class=" success"><strong>Name</strong></td>
+                                   <td>
+                                       <button type="button" class="btn btn-success disabled">Start</button>
+                                       <button type="button" class="btn btn-warning">Pause</button>
+                                       <button type="button" class="btn btn-danger">Stop</button>
+                                   </td>
+                                   <td>
+                                       8%
+                                   </td>
+                                   <td>
+                                       64 MB (10%)
+                                   </td>
+                                   <td>
+                                       <input type="checkbox" name="my-checkbox" checked>
+                                   </td>
+                               </tr>
+                               <tr>
+                                   <td style="vertical-align:middle; text-align:center" class="danger"><strong>Name 2</strong></td>
+                                   <td>
+                                       <button type="button" class="btn btn-success">Start</button>
+                                       <button type="button" class="btn btn-warning">Pause</button>
+                                       <button type="button" class="btn btn-danger disabled">Stop</button>
+                                   </td>
+                                   <td>
+                                       13%
+                                   </td>
+                                   <td>
+                                       14 MB (3%)
+                                   </td>
+                                   <td>
+                                       <input type="checkbox" name="my-checkbox" checked>
+                                   </td>
+                               </tr> -->
+
+                                   </tbody>
+                               </table>
+                           </div>
+                       </div>
+                   </div>
                     <div id="menu3" class="tab-pane fade in">
                         <h3>mjpeg stream of camera/image_raw</h3>
-                        <img src="http://" + window.location.hostname + ":8080/stream?topic=/"+hostname+"/camera/image_raw&quality=50" />
+                        <img src="http://" + hostname + ":8080/stream?topic=/"+ns+"/camera/image_raw&quality=50" />
                     </div>
                     <div id="menu4" class="tab-pane fade in">
                         <h3>Localization</h3>

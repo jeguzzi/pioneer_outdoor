@@ -2,10 +2,10 @@
 	<arg name="target"/>
 	<arg name="port"/>
 	<arg name="send" default="false"/>
-	<node name="udp_receiver" pkg="nimbro_topic_transport" type="udp_receiver" output="screen">
+	<node name="udp_receiver" pkg="nimbro_topic_transport" type="udp_receiver" output="log">
 	      <param name="port" value="8888"/>
 	</node>
-	<node if="$(arg send)" name="udp_sender" pkg="nimbro_topic_transport" type="udp_sender" output="screen">
+	<node if="$(arg send)" name="udp_sender" pkg="nimbro_topic_transport" type="udp_sender" output="log">
               <param name="destination_addr" value="$(arg target)" />
               <param name="destination_port" value="$(arg port)" />
               <rosparam param="topics" subst_value="true">

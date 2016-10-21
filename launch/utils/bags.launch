@@ -4,7 +4,7 @@
 
 <param name='use_sim_time' value='true'/>
 
-<node pkg="rosbag" type="play" name="player" output="screen" required="true"
+<node pkg="rosbag" type="play" name="player" output="log" required="true"
     args="$(find pioneer_outdoor)/bags/2016-03-24-13-24-44.bag --clock -r 4" />
 
 

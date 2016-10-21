@@ -1,6 +1,6 @@
 <launch>
 
-    <node pkg="pioneer_outdoor" type="rviz_satellite_prefetcher.py" name="get_map" output="screen">
+    <node pkg="pioneer_outdoor" type="rviz_satellite_prefetcher.py" name="get_map" output="log">
         <rosparam param="url">
             <![CDATA[
             http://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}
