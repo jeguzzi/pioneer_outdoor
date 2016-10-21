@@ -1,5 +1,8 @@
 <launch>
+   <arg name="resolution" default="0.3"/>
     <group ns="$(env HOSTNAME)">
-        <node pkg="gmapping" type="slam_gmapping" name="gmapping"/>
+        <node pkg="gmapping" type="slam_gmapping" name="gmapping">
+           <param name="delta" value="$(arg resolution)"/>
+        </node>
     </group>
 </launch>
