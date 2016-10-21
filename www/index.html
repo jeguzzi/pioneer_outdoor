@@ -331,7 +331,8 @@
             } else {
                 s.prop('checked', false);
             }
-            //s.bootstrapSwitch('disabled',true);
+            //s.prop('enabled',true);
+            s.bootstrapSwitch('disabled',false);
             //Stil need to implement on the server
             s.on('switchChange.bootstrapSwitch', function(event, state) {
                 set_restart(i, state)
