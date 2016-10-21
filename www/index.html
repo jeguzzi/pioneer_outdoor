@@ -37,7 +37,7 @@
 
         ns = 'pioneer2';
         hostname = window.location.hostname;
-        hostname = '192.168.201.85'
+        //hostname = '192.168.201.85'
 
         var camera_url = "http://"+hostname+":8080/stream?topic=/"+ns+"/camera/image_raw&quality=50";
         $("#camera").attr('src', camera_url);
