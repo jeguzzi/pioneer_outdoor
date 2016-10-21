@@ -25,17 +25,17 @@ class PC(object):
             'Name': policy
         }
         i = '/' + name
-        rospy.loginfo(
-            "Try to set restart_policy of {name} to {restart_policy}.".format(
-                name=name, restart_policy=restart_policy))
         rospy.loginfo(self.containers.get(i, ''))
         if i in self.containers:
             if self.containers[i].get('restart_policy', {}) == restart_policy:
-                rospy.loginfo("Same restart_policy")
+                # rospy.loginfo("Same restart_policy")
                 return "Nothing to change"
             else:
-                rospy.loginfo("Different restart_policy")
-                rospy.loginfo(self.containers[i].get('restart_policy', {}))
+                rospy.loginfo(
+                    "Set restart_policy of {name} to {restart_policy}.".format(
+                        name=name, restart_policy=restart_policy))
+                # rospy.loginfo("Different restart_policy")
+                # rospy.loginfo(self.containers[i].get('restart_policy', {}))
                 self.containers[i]['restart_policy'] = restart_policy
         self.cli.update_container(name, restart_policy=restart_policy)
 
