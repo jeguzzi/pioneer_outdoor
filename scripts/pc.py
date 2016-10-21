@@ -24,9 +24,9 @@ class PC(object):
             'MaximumRetryCount': max_retry,
             'Name': policy
         }
-        self.cli.update_container(restart_policy=restart_policy)
-        return "Set restart_policy to {restart_policy}.".format(
-            restart_policy=restart_policy)
+        self.cli.update_container(name, restart_policy=restart_policy)
+        return "Set restart_policy of {name} to {restart_policy}.".format(
+            name=name, restart_policy=restart_policy)
 
     def discover_docker_containers(self, event):
         for c in self.cli.containers(all=True):
