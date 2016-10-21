@@ -26,6 +26,7 @@ class PC(object):
         }
         rospy.loginfo("Try to set restart_policy of {name} to {restart_policy}.".format(
             name=name, restart_policy=restart_policy))
+        rospy.loginfo("Previous is {c}".format(c=self.containers['ui']['restart_policy']))
         self.cli.update_container(name, restart_policy=restart_policy)
         return "Set restart_policy of {name} to {restart_policy}.".format(
             name=name, restart_policy=restart_policy)
@@ -70,6 +71,7 @@ class PC(object):
             msg.status = c['status']
             config = inspect['HostConfig']
             restart = config['RestartPolicy']
+            c['restart_policy'] = restart
 
             msg.restart_policy = restart['Name']
             msg.restart_max_retry = restart['MaximumRetryCount']

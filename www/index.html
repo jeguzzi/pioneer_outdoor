@@ -344,7 +344,7 @@
             var policy = state ? 'always' : 'no'
             console.log('set restart ' + i + ' to ' + policy)
             var request = new ROSLIB.ServiceRequest({
-                name: name,
+                name: i,
                 policy: policy,
                 max_retry: 0
             });
