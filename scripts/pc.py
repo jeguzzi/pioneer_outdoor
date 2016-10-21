@@ -24,6 +24,8 @@ class PC(object):
             'MaximumRetryCount': max_retry,
             'Name': policy
         }
+        rospy.loginfo("Try to set restart_policy of {name} to {restart_policy}.".format(
+            name=name, restart_policy=restart_policy))
         self.cli.update_container(name, restart_policy=restart_policy)
         return "Set restart_policy of {name} to {restart_policy}.".format(
             name=name, restart_policy=restart_policy)
