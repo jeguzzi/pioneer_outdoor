@@ -24,9 +24,12 @@ class PC(object):
             'MaximumRetryCount': max_retry,
             'Name': policy
         }
+        if '/ui' in self.containers:
+            if self.containers['/ui'].get('restart_policy', {}) == restart_policy:
+                rospy.loginfo("Same restart_policy")
+                return "Nothing to change"
         rospy.loginfo("Try to set restart_policy of {name} to {restart_policy}.".format(
             name=name, restart_policy=restart_policy))
-        rospy.loginfo("Previous is {c}".format(c=self.containers))
         self.cli.update_container(name, restart_policy=restart_policy)
         return "Set restart_policy of {name} to {restart_policy}.".format(
             name=name, restart_policy=restart_policy)
