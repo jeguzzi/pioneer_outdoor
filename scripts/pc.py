@@ -31,7 +31,7 @@ class PC(object):
             else:
                 rospy.loginfo("Different restart_policy")
                 rospy.loginfo(self.containers['/ui'].get('restart_policy', {}))
-                self.containers['/ui'].set('restart_policy', restart_policy)
+                self.containers['/ui']['restart_policy'] = restart_policy
         rospy.loginfo("Try to set restart_policy of {name} to {restart_policy}.".format(
             name=name, restart_policy=restart_policy))
         self.cli.update_container(name, restart_policy=restart_policy)
