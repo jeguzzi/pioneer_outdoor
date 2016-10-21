@@ -1,0 +1,5 @@
+<launch>
+    <group ns="$(env HOSTNAME)">
+        <node pkg="gmapping" type="slam_gmapping" name="gmapping"/>
+    </group>
+</launch>

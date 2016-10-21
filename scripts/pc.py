@@ -170,6 +170,7 @@ class PC(object):
                 stat.summary(diagnostic_msgs.msg.DiagnosticStatus.ERROR,
                              "%s is not defined" % iface)
                 return stat
+
             if len(netifaces.ifaddresses(iface)) < 2:
                 stat.summary(diagnostic_msgs.msg.DiagnosticStatus.ERROR,
                              "%s is down, no ip assigned" % iface)
